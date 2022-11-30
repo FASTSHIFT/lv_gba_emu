@@ -175,18 +175,21 @@ static int get_kbd_event_number()
     return number;
 }
 
-void gba_emu_init()
+void gba_emu_init(const char* rom_file_path)
 {
+    LV_ASSERT_NULL(rom_file_path);
     gba_context_init(&gba_ctx);
 
-    const char* rom_file_path = "/rom/OpenLara.gba";
-    int rom_size = CPULoadRom(rom_file_path);
+    char real_path[PATH_MAX];
+    lv_snprintf(real_path, sizeof(real_path), "/%s", rom_file_path);
+
+    int rom_size = CPULoadRom(real_path);
     if (rom_size <= 0) {
-        LV_LOG_ERROR("load ROM: %s failed", rom_file_path);
+        LV_LOG_ERROR("load ROM: %s failed", real_path);
         return;
     }
 
-    LV_LOG_USER("loaded ROM: %s, size = %d", rom_file_path, rom_size);
+    LV_LOG_USER("loaded ROM: %s, size = %d", real_path, rom_size);
 
 #if (LV_COLOR_DEPTH == 16)
     lv_canvas_set_buffer(gba_ctx.canvas, pix, GBA_FB_STRIDE, GBA_SCREEN_HEIGHT, LV_IMG_CF_TRUE_COLOR);

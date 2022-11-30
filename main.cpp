@@ -20,14 +20,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <stdio.h>
-#include "lvgl/lvgl.h"
-#include "lvgl/demos/lv_demos.h"
-#include "lv_port/lv_port.h"
 #include "gba_emu/gba_emu.h"
+#include "lv_port/lv_port.h"
+#include "lvgl/demos/lv_demos.h"
+#include "lvgl/lvgl.h"
+#include <stdio.h>
 
 int main(int argc, const char* argv[])
 {
+    if (argc < 2) {
+        printf("Please input rom file path.\neg: %s xxx.gba\n", argv[0]);
+        return -1;
+    }
+
+    const char* rom_file_path = argv[1];
+
 #if LV_USE_LOG
     lv_log_register_print_cb([](lv_log_level_t level, const char* str) {
         LV_UNUSED(level);
@@ -42,7 +49,7 @@ int main(int argc, const char* argv[])
         return -1;
     }
 
-    gba_emu_init();
+    gba_emu_init(rom_file_path);
 
     // lv_demo_widgets();
 
