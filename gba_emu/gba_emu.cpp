@@ -20,8 +20,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <stdlib.h>
 #include "gba_emu.h"
+#include <stdlib.h>
 
 #include "lv_drivers/indev/evdev.h"
 #include "lvgl/lvgl.h"
@@ -161,12 +161,13 @@ static void gba_context_init(gba_context_t* ctx)
     ctx->canvas = canvas;
 }
 
-static uint8_t get_kbd_event_number(void) {
-    FILE *pipe = popen(GET_KBD_DEVICE_EVENT_NUMBER, "r");
-    char buffer[8] = {0};
-    uint8_t number = 0;
+static int get_kbd_event_number()
+{
+    FILE* pipe = popen(GET_KBD_DEVICE_EVENT_NUMBER, "r");
+    char buffer[8] = { 0 };
+    int number = -1;
     while (!feof(pipe)) {
-        if (fgets(buffer, 8, pipe) != NULL) {
+        if (fgets(buffer, sizeof(buffer), pipe) != NULL) {
             number = atoi(buffer);
         }
     }
@@ -193,13 +194,15 @@ void gba_emu_init()
     LV_LOG_USER("set direct canvas buffer = %p", pix);
 #endif
 
-    evdev_init();
-
-    char kbd_event_name[24] = {0};
-    uint8_t number = get_kbd_event_number();
-    sprintf(kbd_event_name, "/dev/input/event%d", number);
-    printf("kbd_name: %s\r\n", kbd_event_name);
-    evdev_set_file((char*)kbd_event_name);
+    int number = get_kbd_event_number();
+    if (number >= 0) {
+        char kbd_event_name[32] = { 0 };
+        lv_snprintf(kbd_event_name, sizeof(kbd_event_name), "/dev/input/event%d", number);
+        LV_LOG_USER("kbd_name: %s", kbd_event_name);
+        evdev_set_file(kbd_event_name);
+    } else {
+        LV_LOG_WARN("can't get kbd event number");
+    }
 
     CPUInit(NULL, false);
     CPUReset();
