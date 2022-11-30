@@ -4,6 +4,18 @@ LVGL Game Boy Advance Emulator
 * GBA Emulator: https://github.com/libretro/vba-next
 * Test ROM: https://github.com/XProger/OpenLara
 
+# Feature
+* The emulator kernel is based on [vba-next](https://github.com/libretro/vba-next) and does not depend on any third-party libraries.
+* Decoupled from the OS, only relying on lvgl's memory allocation and file access interface.
+* Support to use GBA framebuffer directly as lv_canvas buffer, zero copy overhead.
+
+# To be completed
+* Audio output support.
+* Frame rate control support.
+* Optimize key mapping and decouple from linux event device.
+* Virtual key support.
+* Memory usage optimization.
+
 # Clone
 ```bash
 git clone https://github.com/FASTSHIFT/lv_gba_emu.git --recurse-submodules
