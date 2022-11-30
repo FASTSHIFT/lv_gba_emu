@@ -10,7 +10,7 @@ LVGL Game Boy Advance Emulator
 # Feature
 * The emulator kernel is based on [vba-next](https://github.com/libretro/vba-next) and does not depend on any third-party libraries.
 * Decoupled from the OS, only relying on lvgl's memory allocation and file access interface.
-* Support to use GBA framebuffer directly as lv_canvas buffer, zero copy overhead.
+* Support to use GBA framebuffer directly as `lv_canvas` buffer, zero copy overhead.
 
 # To be completed
 * Audio output support.
