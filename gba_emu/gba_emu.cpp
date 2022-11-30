@@ -62,7 +62,7 @@ static uint32_t gba_context_get_joykey(gba_context_t* ctx)
     lv_indev_data_t data;
     static lv_indev_drv_t indev_drv;
     /* "a", "b", "select", "start", "right", "left", "up", "down", "r", "l", "turbo", "menu" */
-    uint32_t key_state = 0;
+    static uint32_t key_state = 0;
 
     if (indev_drv.type != LV_INDEV_TYPE_KEYPAD) {
         lv_indev_drv_init(&indev_drv);
@@ -72,41 +72,29 @@ static uint32_t gba_context_get_joykey(gba_context_t* ctx)
     evdev_read(&indev_drv, &data);
 
     static const uint32_t key_map[GBA_KEY_NUM] = {
-        LV_KEY_ENTER,
-        LV_KEY_BACKSPACE,
-        LV_KEY_PREV,
-        LV_KEY_NEXT,
+        LV_KEY_ENTER, /* A */
+        LV_KEY_BACKSPACE, /* B */
+        LV_KEY_NEXT, /* SELECT */
+        LV_KEY_PREV, /* START */
 
-        LV_KEY_RIGHT,
-        LV_KEY_LEFT,
-        LV_KEY_UP,
-        LV_KEY_DOWN,
+        LV_KEY_RIGHT, /* RIGHT */
+        LV_KEY_LEFT, /* LEFT */
+        LV_KEY_UP, /* UP */
+        LV_KEY_DOWN, /* DOWN */
 
-        0,
-        0,
-        0,
-        0
+        0, /* R */
+        0, /* L */
+        0, /* TURBO */
+        0 /* MENU */
     };
-
-    // static const uint32_t key_map[GBA_KEY_NUM] = {
-    //     KEY_A,
-    //     KEY_B,
-    //     KEY_SPACE,
-    //     KEY_ENTER,
-    //     KEY_RIGHT,
-    //     KEY_LEFT,
-    //     KEY_UP,
-    //     KEY_DOWN,
-    //     KEY_R,
-    //     KEY_L,
-    //     KEY_T,
-    //     KEY_M
-    // };
 
     for (int i = 0; i < GBA_KEY_NUM; i++) {
         if (data.key == key_map[i]) {
+            uint32_t mask = 1 << i;
             if (data.state == LV_INDEV_STATE_PRESSED) {
-                key_state |= 1 << i;
+                key_state |= mask;
+            } else {
+                key_state &= ~mask;
             }
         }
     }
