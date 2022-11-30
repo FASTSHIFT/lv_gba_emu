@@ -95,8 +95,6 @@ int lv_port_init(void)
     lv_timer_set_period(lv_anim_get_timer(), 16);
     lv_timer_set_period(lv_indev_get_read_timer(mouse_indev), 16);
 
-    lv_port_mem_init();
-
     return 0;
 }
 

@@ -65,9 +65,6 @@ int lv_port_init(void)
     lv_win32_add_all_input_devices_to_group(NULL);
     lv_timer_set_period(lv_anim_get_timer(), 16);
     lv_timer_set_period(lv_indev_get_read_timer(lv_win32_pointer_device_object), 16);
-
-    lv_port_mem_init();
-
     return 0;
 }
 
