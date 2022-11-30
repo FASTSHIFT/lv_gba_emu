@@ -20,6 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <stdlib.h>
 #include "gba_emu.h"
 
 #include "lv_drivers/indev/evdev.h"
@@ -28,6 +29,10 @@
 #include "gba.h"
 #include "globals.h"
 #include "libretro.h"
+
+#define GET_KBD_DEVICE_EVENT_NUMBER                                            \
+    "grep -E 'Handlers|EV=' /proc/bus/input/devices | grep -B1 'EV=120013' | " \
+    "grep -Eo 'event[0-9]+' | grep -Eo '[0-9]+' | tr -d '\n'"
 
 #define GBA_FB_STRIDE PIX_BUFFER_SCREEN_WIDTH
 #define GBA_SCREEN_WIDTH 240
@@ -156,6 +161,19 @@ static void gba_context_init(gba_context_t* ctx)
     ctx->canvas = canvas;
 }
 
+static uint8_t get_kbd_event_number(void) {
+    FILE *pipe = popen(GET_KBD_DEVICE_EVENT_NUMBER, "r");
+    char buffer[8] = {0};
+    uint8_t number = 0;
+    while (!feof(pipe)) {
+        if (fgets(buffer, 8, pipe) != NULL) {
+            number = atoi(buffer);
+        }
+    }
+    pclose(pipe);
+    return number;
+}
+
 void gba_emu_init()
 {
     gba_context_init(&gba_ctx);
@@ -176,7 +194,12 @@ void gba_emu_init()
 #endif
 
     evdev_init();
-    evdev_set_file((char*)"/dev/input/event1");
+
+    char kbd_event_name[24] = {0};
+    uint8_t number = get_kbd_event_number();
+    sprintf(kbd_event_name, "/dev/input/event%d", number);
+    printf("kbd_name: %s\r\n", kbd_event_name);
+    evdev_set_file((char*)kbd_event_name);
 
     CPUInit(NULL, false);
     CPUReset();
