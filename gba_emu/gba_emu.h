@@ -20,10 +20,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef GBA_EMU_H
-#define GBA_EMU_H
+#ifndef LV_GBA_EMU_H
+#define LV_GBA_EMU_H
 
-void gba_emu_init(const char* rom_file_path);
-void gba_emu_loop();
+#include "lvgl/lvgl.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -20,41 +20,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include "gba_emu/gba_emu.h"
-#include "lv_port/lv_port.h"
+#ifndef GBA_INTERNAL_H
+#define GBA_INTERNAL_H
+
 #include "lvgl/lvgl.h"
-#include <stdio.h>
 
-int main(int argc, const char* argv[])
-{
-    if (argc < 2) {
-        printf("Please input rom file path.\neg: %s xxx.gba\n", argv[0]);
-        return -1;
-    }
-
-    const char* rom_file_path = argv[1];
-
-#if LV_USE_LOG
-    lv_log_register_print_cb([](lv_log_level_t level, const char* str) {
-        LV_UNUSED(level);
-        printf("[LVGL]%s", str);
-    });
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-    lv_init();
+typedef struct gba_context_s {
+    lv_obj_t* canvas;
+    lv_color_t* canvas_buf;
+    lv_timer_t* timer;
+    lv_coord_t fb_stride;
+    uint16_t fps;
+    bool key_state[16];
+    void (*input_update_cb)(struct gba_context_s* ctx);
+} gba_context_t;
 
-    if (lv_port_init() < 0) {
-        LV_LOG_USER("hal init failed");
-        return -1;
-    }
+bool gba_retro_init(gba_context_t* ctx);
+bool gba_retro_load_game(gba_context_t* ctx, const char* path);
+void gba_retro_run(gba_context_t* ctx);
 
-    lv_obj_t* gba_emu = lv_gba_emu_create(lv_scr_act(), rom_file_path);
-    lv_obj_set_style_outline_color(gba_emu, lv_palette_main(LV_PALETTE_BLUE), 0);
-    lv_obj_set_style_outline_width(gba_emu, 5, 0);
-    lv_obj_center(gba_emu);
-
-    while (true) {
-        uint32_t sleep_ms = lv_timer_handler();
-        lv_port_sleep(sleep_ms);
-    }
+#ifdef __cplusplus
 }
+#endif
+
+#endif
