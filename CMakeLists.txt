@@ -62,11 +62,10 @@ elseif (UNIX)
 
         # Address Sanitizer
         if (NOT DISABLE_ASAN)
-        set(ASAN_FLAGS "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer")
-        add_definitions(${ASAN_FLAGS})
-        set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${ASAN_FLAGS})
+                set(ASAN_FLAGS "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer")
+                add_definitions(${ASAN_FLAGS})
+                set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${ASAN_FLAGS})
         endif ()
-
 endif ()
 
 # Include
@@ -96,13 +95,14 @@ file(GLOB VBA_NEXT_SOURCE
         ${VBA_NEXT_SOURCE_DIR}/libretro-common/streams/*.c
         ${VBA_NEXT_SOURCE_DIR}/libretro-common/string/*.c
         ${VBA_NEXT_SOURCE_DIR}/libretro-common/time/*.c
-        )
+)
 
+## ALL SOURCES
 set(SOURCES
         ${LV_PORT_SOURCES}
         ${GBA_EMU_SOURCES}
         ${VBA_NEXT_SOURCE}
-        )
+)
 
 # Subdirectory
 add_subdirectory(${PROJECT_SOURCE_DIR}/lvgl ${PROJECT_BINARY_DIR}/build_lvgl)
