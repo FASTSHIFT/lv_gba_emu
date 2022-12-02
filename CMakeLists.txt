@@ -32,7 +32,6 @@ add_definitions(
         -DFRONTEND_SUPPORTS_RGB565=1
         -DTILED_RENDERING=0
         -DSTATIC_LINKING=0
-        -DUSE_CHEATS=1
         -DUSE_TWEAKS=0
         -DUSE_THREADED_RENDERER=0
         -DUSE_FRAME_SKIP=0
