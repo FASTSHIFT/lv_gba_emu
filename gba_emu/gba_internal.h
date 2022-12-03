@@ -29,19 +29,53 @@
 extern "C" {
 #endif
 
+#define GBA_ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+
+typedef enum {
+    GBA_JOYPAD_B,
+    GBA_JOYPAD_Y,
+    GBA_JOYPAD_SELECT,
+    GBA_JOYPAD_START,
+    GBA_JOYPAD_UP,
+    GBA_JOYPAD_DOWN,
+    GBA_JOYPAD_LEFT,
+    GBA_JOYPAD_RIGHT,
+    GBA_JOYPAD_A,
+    GBA_JOYPAD_X,
+    GBA_JOYPAD_L,
+    GBA_JOYPAD_R,
+    GBA_JOYPAD_L2,
+    GBA_JOYPAD_R2,
+    GBA_JOYPAD_L3,
+    GBA_JOYPAD_R3,
+    _GBA_JOYPAD_MAX
+} gba_joypad_id_t;
+
+typedef struct gba_view_s gba_view_t;
+
 typedef struct gba_context_s {
-    lv_obj_t* canvas;
-    lv_color_t* canvas_buf;
+    gba_view_t* view;
     lv_timer_t* timer;
-    lv_coord_t fb_stride;
-    uint16_t fps;
-    bool key_state[16];
+
+    struct {
+        lv_coord_t fb_width;
+        lv_coord_t fb_height;
+        lv_coord_t fb_stride;
+        double fps; /* FPS of video content. */
+        double sample_rate; /* Sampling rate of audio. */
+    } av_info;
+
+    bool key_state[_GBA_JOYPAD_MAX];
     void (*input_update_cb)(struct gba_context_s* ctx);
 } gba_context_t;
 
-bool gba_retro_init(gba_context_t* ctx);
+void gba_retro_init(gba_context_t* ctx);
 bool gba_retro_load_game(gba_context_t* ctx, const char* path);
 void gba_retro_run(gba_context_t* ctx);
+
+bool gba_view_init(gba_context_t* ctx, lv_obj_t* par);
+lv_obj_t* gba_view_get_root(gba_context_t* ctx);
+void gba_view_draw_frame(gba_context_t* ctx, const uint16_t* buf, lv_coord_t width, lv_coord_t height);
 
 #ifdef __cplusplus
 }

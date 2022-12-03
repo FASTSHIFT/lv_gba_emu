@@ -12,7 +12,7 @@ static void retro_log_printf_cb(enum retro_log_level level, const char* fmt, ...
         "DEBUG", "INFO", "WARN", "ERROR"
     };
 
-    if (level >= (sizeof(prompt) / sizeof(prompt[0]))) {
+    if (level >= GBA_ARRAY_SIZE(prompt)) {
         return;
     }
 
@@ -44,27 +44,7 @@ static bool retro_environment_cb(unsigned cmd, void* data)
 
 static void retro_video_refresh_cb(const void* data, unsigned width, unsigned height, size_t pitch)
 {
-#if (LV_COLOR_DEPTH == 16)
-    if (gba_ctx_p->canvas_buf != data) {
-        gba_ctx_p->canvas_buf = (lv_color_t*)data;
-        lv_canvas_set_buffer(gba_ctx_p->canvas, gba_ctx_p->canvas_buf, gba_ctx_p->fb_stride, height, LV_IMG_CF_TRUE_COLOR);
-        lv_obj_set_width(gba_ctx_p->canvas, width);
-        LV_LOG_USER("set direct canvas buffer = %p", gba_ctx_p->canvas_buf);
-    }
-#else
-    const lv_color16_t* src = (const lv_color16_t*)data;
-    lv_color_t* dst = gba_ctx_p->canvas_buf;
-
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            dst->full = lv_color_make(src->ch.red << 3, src->ch.green << 2, src->ch.blue << 3).full;
-            dst++;
-            src++;
-        }
-        src += (gba_ctx_p->fb_stride - width);
-    }
-#endif
-    lv_obj_invalidate(gba_ctx_p->canvas);
+    gba_view_draw_frame(gba_ctx_p, data, width, height);
 }
 
 static void retro_audio_sample_cb(int16_t left, int16_t right)
@@ -89,7 +69,7 @@ static int16_t retro_input_state_cb(unsigned port, unsigned device, unsigned ind
     return gba_ctx_p->key_state[id];
 }
 
-bool gba_retro_init(gba_context_t* ctx)
+void gba_retro_init(gba_context_t* ctx)
 {
     gba_ctx_p = ctx;
     retro_set_environment(retro_environment_cb);
@@ -102,27 +82,11 @@ bool gba_retro_init(gba_context_t* ctx)
 
     struct retro_system_av_info av_info;
     retro_get_system_av_info(&av_info);
-
-    ctx->fb_stride = GBA_FB_STRIDE;
-    ctx->fps = lround(av_info.timing.fps);
-
-#if (LV_COLOR_DEPTH != 16)
-    lv_coord_t width = av_info.geometry.base_width;
-    lv_coord_t height = av_info.geometry.base_height;
-    size_t buf_size = LV_IMG_BUF_SIZE_TRUE_COLOR(width, height);
-    LV_ASSERT(buf_size > 0);
-
-    ctx->canvas_buf = lv_malloc(buf_size);
-    LV_ASSERT_MALLOC(ctx->canvas_buf);
-    if (!ctx->canvas_buf) {
-        retro_deinit();
-        LV_LOG_ERROR("canvas_buf malloc failed");
-        return false;
-    }
-    lv_canvas_set_buffer(ctx->canvas, ctx->canvas_buf, width, height, LV_IMG_CF_TRUE_COLOR);
-#endif
-
-    return true;
+    ctx->av_info.fb_width = av_info.geometry.base_width;
+    ctx->av_info.fb_height = av_info.geometry.base_height;
+    ctx->av_info.fb_stride = GBA_FB_STRIDE;
+    ctx->av_info.fps = av_info.timing.fps;
+    ctx->av_info.sample_rate = av_info.timing.sample_rate;
 }
 
 bool gba_retro_load_game(gba_context_t* ctx, const char* path)

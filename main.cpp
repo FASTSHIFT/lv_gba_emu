@@ -48,13 +48,11 @@ int main(int argc, const char* argv[])
         return -1;
     }
 
-    lv_obj_t* gba_emu = lv_gba_emu_create(lv_scr_act(), rom_file_path);
-    lv_obj_set_style_outline_color(gba_emu, lv_palette_main(LV_PALETTE_BLUE), 0);
-    lv_obj_set_style_outline_width(gba_emu, 5, 0);
-    lv_obj_center(gba_emu);
+    lv_gba_emu_create(lv_scr_act(), rom_file_path);
 
     while (true) {
         uint32_t sleep_ms = lv_timer_handler();
+        sleep_ms = sleep_ms == 0 ? 1 : sleep_ms; 
         lv_port_sleep(sleep_ms);
     }
 }
