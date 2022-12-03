@@ -14,9 +14,6 @@ LVGL Game Boy Advance Emulator
 
 ## To be completed
 * Audio output support.
-* Frame rate control support.
-* Optimize key mapping and decouple from linux event device.
-* Virtual key support.
 * Memory usage optimization.
 
 ## Clone
