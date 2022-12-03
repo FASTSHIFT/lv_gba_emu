@@ -77,12 +77,12 @@ int lv_port_init(void)
     indev_drv_1.read_cb = sdl_mouse_read;
     lv_indev_t* mouse_indev = lv_indev_drv_register(&indev_drv_1);
 
-    static lv_indev_drv_t indev_drv_2;
-    lv_indev_drv_init(&indev_drv_2); /*Basic initialization*/
-    indev_drv_2.type = LV_INDEV_TYPE_KEYPAD;
-    indev_drv_2.read_cb = sdl_keyboard_read;
-    lv_indev_t* kb_indev = lv_indev_drv_register(&indev_drv_2);
-    lv_indev_set_group(kb_indev, g);
+    // static lv_indev_drv_t indev_drv_2;
+    // lv_indev_drv_init(&indev_drv_2); /*Basic initialization*/
+    // indev_drv_2.type = LV_INDEV_TYPE_KEYPAD;
+    // indev_drv_2.read_cb = sdl_keyboard_read;
+    // lv_indev_t* kb_indev = lv_indev_drv_register(&indev_drv_2);
+    // lv_indev_set_group(kb_indev, g);
 
     static lv_indev_drv_t indev_drv_3;
     lv_indev_drv_init(&indev_drv_3); /*Basic initialization*/

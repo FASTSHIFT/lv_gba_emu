@@ -53,10 +53,6 @@ if (WIN32)
 elseif (UNIX) # MAC or LINUX
         message(STATUS "Platform: UNIX")
 
-        if (NOT APPLE)
-                add_definitions(-DUSE_EVDEV=1)
-        endif ()
-
         add_definitions(-DUSE_SDL=1 -DHAVE_UNISTD_H=1 -DHAVE_FCNTL_H=1)
         find_package(SDL2 REQUIRED SDL2)
         include_directories(
@@ -88,6 +84,9 @@ file(GLOB LV_PORT_SOURCES "lv_port/*.c")
 ## gba emu
 file(GLOB GBA_EMU_SOURCES "gba_emu/*.c*")
 
+## gba port
+file(GLOB GBA_PORT_SOURCES "gba_port_*.c*")
+
 ## vba-next
 file(GLOB VBA_NEXT_SOURCE
         ${VBA_NEXT_SOURCE_DIR}/src/*.c
@@ -105,6 +104,7 @@ file(GLOB VBA_NEXT_SOURCE
 set(SOURCES
         ${LV_PORT_SOURCES}
         ${GBA_EMU_SOURCES}
+        ${GBA_PORT_SOURCES}
         ${VBA_NEXT_SOURCE}
 )
 
@@ -114,7 +114,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/lv_drivers ${PROJECT_BINARY_DIR}/build_lv
 
 # Executable
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-add_executable(Simulator main.cpp ${SOURCES} ${INCLUDES})
+add_executable(Simulator main.c ${SOURCES} ${INCLUDES})
 
 # Link
 target_link_libraries(

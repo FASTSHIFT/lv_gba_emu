@@ -20,24 +20,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef LV_GBA_EMU_H
-#define LV_GBA_EMU_H
-
+#include "gba_emu/gba_emu.h"
+#include "lv_port/lv_port.h"
 #include "lvgl/lvgl.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef void (*lv_gba_emu_input_update_cb_t)(bool* key_state_arr, uint16_t len);
-typedef size_t (*lv_gba_emu_audio_output_cb_t)(const int16_t* data, size_t frames);
-
-lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path);
-void lv_gba_emu_set_input_update_cb(lv_obj_t* gba_emu, lv_gba_emu_input_update_cb_t input_update_cb);
-void lv_gba_emu_set_audio_output_cb(lv_obj_t* gba_emu, lv_gba_emu_audio_output_cb_t audio_output_cb);
-
-#ifdef __cplusplus
+static void log_print_cb(lv_log_level_t level, const char* str)
+{
+    LV_UNUSED(level);
+    printf("[LVGL]%s", str);
 }
+
+int main(int argc, const char* argv[])
+{
+    if (argc < 2) {
+        printf("Please input rom file path.\neg: %s xxx.gba\n", argv[0]);
+        return -1;
+    }
+
+    const char* rom_file_path = argv[1];
+
+#if LV_USE_LOG
+    lv_log_register_print_cb(log_print_cb);
 #endif
 
+    lv_init();
+
+    if (lv_port_init() < 0) {
+        LV_LOG_USER("hal init failed");
+        return -1;
+    }
+
+    lv_obj_t* gba_emu = lv_gba_emu_create(lv_scr_act(), rom_file_path);
+
+#if USE_SDL || USE_EVDEV
+    void gba_port_init(lv_obj_t * gba_emu);
+    gba_port_init(gba_emu);
 #endif
+
+    while (true) {
+        uint32_t sleep_ms = lv_timer_handler();
+        sleep_ms = sleep_ms == 0 ? 1 : sleep_ms;
+        lv_port_sleep(sleep_ms);
+    }
+}
