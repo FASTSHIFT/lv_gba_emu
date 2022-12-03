@@ -23,7 +23,7 @@ add_definitions(
         -DLV_USE_MEM_MONITOR=1
         -DLV_USE_PERF_MONITOR=1
         -DLV_SCREEN_HOR_RES=320
-        -DLV_SCREEN_VER_RES=240
+        -DLV_SCREEN_VER_RES=480
 )
 
 # vba-next config
@@ -50,8 +50,12 @@ if (WIN32)
 
         add_definitions(-DUSE_WIN32DRV=1)
         set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Simulator)
-elseif (UNIX)
+elseif (UNIX) # MAC or LINUX
         message(STATUS "Platform: UNIX")
+
+        if (NOT APPLE)
+                add_definitions(-DUSE_EVDEV=1)
+        endif ()
 
         add_definitions(-DUSE_SDL=1 -DHAVE_UNISTD_H=1 -DHAVE_FCNTL_H=1)
         find_package(SDL2 REQUIRED SDL2)
