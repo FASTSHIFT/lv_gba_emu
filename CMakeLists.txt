@@ -54,7 +54,7 @@ elseif (UNIX) # MAC or LINUX
         message(STATUS "Platform: UNIX")
 
         if (NOT APPLE)
-                add_definitions(-DUSE_EVDEV=0)
+                add_definitions(-DUSE_EVDEV=1)
         endif ()
 
         add_definitions(-DUSE_SDL=1 -DHAVE_UNISTD_H=1 -DHAVE_FCNTL_H=1)

@@ -66,7 +66,9 @@ typedef struct gba_context_s {
     } av_info;
 
     bool key_state[_GBA_JOYPAD_MAX];
-    void (*input_update_cb)(struct gba_context_s* ctx);
+
+    void (*input_update_cb)(bool* key_state_arr, uint16_t len);
+    size_t (*audio_output_cb)(const int16_t* data, size_t frames);
 } gba_context_t;
 
 void gba_retro_init(gba_context_t* ctx);

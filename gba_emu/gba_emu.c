@@ -22,85 +22,7 @@
  */
 #include "gba_emu.h"
 #include "gba_internal.h"
-#include <stdlib.h>
-
 #include "lvgl/lvgl.h"
-
-#if USE_EVDEV
-
-#include "lv_drivers/indev/evdev.h"
-
-static int get_kbd_event_number()
-{
-    const char* cmd = "grep -E 'Handlers|EV=' /proc/bus/input/devices | grep -B1 'EV=120013' | "
-                      "grep -Eo 'event[0-9]+' | grep -Eo '[0-9]+' | tr -d '\n'";
-
-    FILE* pipe = popen(cmd, "r");
-    char buffer[8] = { 0 };
-    int number = -1;
-    while (!feof(pipe)) {
-        if (fgets(buffer, sizeof(buffer), pipe) != NULL) {
-            number = atoi(buffer);
-        }
-    }
-    pclose(pipe);
-    return number;
-}
-
-static void gba_input_update_cb(gba_context_t* ctx)
-{
-    lv_indev_data_t data;
-    static lv_indev_drv_t indev_drv;
-
-    if (indev_drv.type != LV_INDEV_TYPE_KEYPAD) {
-        lv_indev_drv_init(&indev_drv);
-        indev_drv.type = LV_INDEV_TYPE_KEYPAD;
-    }
-
-    evdev_read(&indev_drv, &data);
-
-    static const lv_key_t key_map[_GBA_JOYPAD_MAX] = {
-        LV_KEY_BACKSPACE,
-        0,
-        LV_KEY_ESC,
-        LV_KEY_HOME,
-        LV_KEY_UP,
-        LV_KEY_DOWN,
-        LV_KEY_LEFT,
-        LV_KEY_RIGHT,
-        LV_KEY_ENTER,
-        0,
-        LV_KEY_PREV,
-        LV_KEY_NEXT,
-        0,
-        0,
-        0,
-        0
-    };
-
-    for (int i = 0; i < GBA_ARRAY_SIZE(key_map); i++) {
-        if (data.key == key_map[i]) {
-            ctx->key_state[i] = (data.state == LV_INDEV_STATE_PRESSED);
-        }
-    }
-}
-
-void gba_evdev_init(gba_context_t* ctx)
-{
-    int number = get_kbd_event_number();
-    if (number >= 0) {
-        char kbd_event_name[32] = { 0 };
-        lv_snprintf(kbd_event_name, sizeof(kbd_event_name), "/dev/input/event%d", number);
-        LV_LOG_USER("kbd_name: %s", kbd_event_name);
-        evdev_set_file(kbd_event_name);
-
-        ctx->input_update_cb = gba_input_update_cb;
-    } else {
-        LV_LOG_WARN("can't get kbd event number");
-    }
-}
-
-#endif
 
 static void gba_context_init(gba_context_t* ctx)
 {
@@ -135,12 +57,22 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path)
         goto failed;
     }
 
-#if USE_EVDEV
-    gba_evdev_init(&gba_ctx);
-#endif
-
     gba_ctx.timer = lv_timer_create(gba_emu_timer_cb, 1000 / gba_ctx.av_info.fps, &gba_ctx);
 
 failed:
     return gba_view_get_root(&gba_ctx);
+}
+
+void lv_gba_emu_set_input_update_cb(lv_obj_t* gba_emu, lv_gba_emu_input_update_cb_t input_update_cb)
+{
+    gba_context_t* ctx = lv_obj_get_user_data(gba_emu);
+    LV_ASSERT_NULL(ctx);
+    ctx->input_update_cb = input_update_cb;
+}
+
+void lv_gba_emu_set_audio_output_cb(lv_obj_t* gba_emu, lv_gba_emu_audio_output_cb_t audio_output_cb)
+{
+    gba_context_t* ctx = lv_obj_get_user_data(gba_emu);
+    LV_ASSERT_NULL(ctx);
+    ctx->audio_output_cb = audio_output_cb;
 }
