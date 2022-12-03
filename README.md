@@ -1,7 +1,7 @@
 # lv_gba_emu
 LVGL Game Boy Advance Emulator
 
-![image](https://github.com/FASTSHIFT/lv_gba_emu/blob/main/images/lv_gba_emu.png)
+![image](https://github.com/FASTSHIFT/lv_gba_emu/blob/main/images/xlv_gba_emu.png)
 
 * GUI: https://github.com/lvgl/lvgl
 * GBA Emulator: https://github.com/libretro/vba-next
