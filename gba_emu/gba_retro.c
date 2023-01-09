@@ -99,6 +99,7 @@ static int16_t retro_input_state_cb(unsigned port, unsigned device, unsigned ind
 
 void gba_retro_init(gba_context_t* ctx)
 {
+    LV_ASSERT_MSG(gba_ctx_p == NULL, "Multi-instance mode is not supported");
     gba_ctx_p = ctx;
     retro_set_environment(retro_environment_cb);
     retro_set_video_refresh(retro_video_refresh_cb);
@@ -119,7 +120,9 @@ void gba_retro_init(gba_context_t* ctx)
 
 void gba_retro_deinit(gba_context_t* ctx)
 {
+    LV_ASSERT_NULL(gba_ctx_p);
     retro_deinit();
+    gba_ctx_p = NULL;
 }
 
 bool gba_retro_load_game(gba_context_t* ctx, const char* path)
