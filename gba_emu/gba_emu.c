@@ -59,7 +59,7 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path)
         goto failed;
     }
 
-    gba_ctx->timer = lv_timer_create(gba_emu_timer_cb, 1000 / gba_ctx->av_info.fps, &gba_ctx);
+    gba_ctx->timer = lv_timer_create(gba_emu_timer_cb, 1000 / gba_ctx->av_info.fps, gba_ctx);
 
 failed:
     return gba_view_get_root(gba_ctx);

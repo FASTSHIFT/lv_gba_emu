@@ -30,8 +30,6 @@ static uint32_t gba_input_update_cb(void* user_data)
 
     uint32_t key_state = 0;
 
-    LV_ASSERT_NULL(kbstate);
-
     for (int i = 0; i < sizeof(key_map) / sizeof(key_map[0]); i++) {
         if (kbstate[key_map[i]]) {
             key_state |= (1 << i);
