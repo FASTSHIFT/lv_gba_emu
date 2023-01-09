@@ -27,5 +27,5 @@ mkdir build
 cd build
 cmake ..
 make -j
-sudo ./build/Simulator rom/OpenLara.gba
+./Simulator ../rom/OpenLara.gba
 ```
