@@ -53,6 +53,11 @@ typedef enum {
 
 typedef struct gba_view_s gba_view_t;
 
+typedef struct {
+    uint32_t (*read_cb)(void* user_data);
+    void* user_data;
+} gba_input_event_t;
+
 typedef struct gba_context_s {
     gba_view_t* view;
     lv_timer_t* timer;
@@ -65,9 +70,8 @@ typedef struct gba_context_s {
         double sample_rate; /* Sampling rate of audio. */
     } av_info;
 
-    bool key_state[_GBA_JOYPAD_MAX];
-
-    void (*input_update_cb)(bool* key_state_arr, uint16_t len);
+    uint32_t key_state;
+    lv_ll_t input_event_ll;
     size_t (*audio_output_cb)(const int16_t* data, size_t frames);
 } gba_context_t;
 

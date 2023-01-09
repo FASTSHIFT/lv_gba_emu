@@ -1,15 +1,12 @@
 #include "gba_emu/gba_emu.h"
 
-#define USE_SDL 1
-
 #if USE_SDL
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_keycode.h>
 
-static void gba_input_update_cb(bool* key_state_arr, uint16_t len)
+static uint32_t gba_input_update_cb(void* user_data)
 {
-
     static const SDL_Keycode key_map[] = {
         SDL_SCANCODE_X, /* GBA_JOYPAD_B */
         0, /* GBA_JOYPAD_Y */
@@ -31,11 +28,17 @@ static void gba_input_update_cb(bool* key_state_arr, uint16_t len)
 
     const int8_t* kbstate = SDL_GetKeyboardState(NULL);
 
+    uint32_t key_state = 0;
+
     LV_ASSERT_NULL(kbstate);
 
-    for (int i = 0; i < len; i++) {
-        key_state_arr[i] = kbstate[key_map[i]];
+    for (int i = 0; i < sizeof(key_map) / sizeof(key_map[0]); i++) {
+        if (kbstate[key_map[i]]) {
+            key_state |= (1 << i);
+        }
     }
+
+    return key_state;
 }
 
 static size_t gba_audio_output_cb(const int16_t* data, size_t frames)
@@ -43,9 +46,9 @@ static size_t gba_audio_output_cb(const int16_t* data, size_t frames)
     return 0;
 }
 
-void gba_port_init(lv_obj_t* gba_emu)
+void gba_port_sdl_init(lv_obj_t* gba_emu)
 {
-    lv_gba_emu_set_input_update_cb(gba_emu, gba_input_update_cb);
+    lv_gba_emu_add_input_read_cb(gba_emu, gba_input_update_cb, NULL);
     lv_gba_emu_set_audio_output_cb(gba_emu, gba_audio_output_cb);
 }
 

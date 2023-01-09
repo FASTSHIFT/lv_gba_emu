@@ -29,11 +29,11 @@
 extern "C" {
 #endif
 
-typedef void (*lv_gba_emu_input_update_cb_t)(bool* key_state_arr, uint16_t len);
+typedef uint32_t (*lv_gba_emu_input_read_cb_t)(void* user_data);
 typedef size_t (*lv_gba_emu_audio_output_cb_t)(const int16_t* data, size_t frames);
 
 lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path);
-void lv_gba_emu_set_input_update_cb(lv_obj_t* gba_emu, lv_gba_emu_input_update_cb_t input_update_cb);
+void lv_gba_emu_add_input_read_cb(lv_obj_t* gba_emu, lv_gba_emu_input_read_cb_t read_cb, void* user_data);
 void lv_gba_emu_set_audio_output_cb(lv_obj_t* gba_emu, lv_gba_emu_audio_output_cb_t audio_output_cb);
 
 #ifdef __cplusplus

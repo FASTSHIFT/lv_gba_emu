@@ -20,6 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include "gba_emu.h"
 #include "gba_internal.h"
 
 struct gba_view_s {
@@ -108,26 +109,45 @@ static bool screen_create(gba_context_t* ctx)
     return true;
 }
 
-static void btn_event_cb(lv_event_t* e)
+static uint32_t btn_read_cb(void* user_data)
 {
-    lv_event_code_t code = lv_event_get_code(e);
-    if (code == LV_EVENT_PRESSED || code == LV_EVENT_RELEASED) {
-        lv_obj_t* btn = lv_event_get_current_target(e);
-        bool* key_p = lv_event_get_user_data(e);
-        *key_p = (code == LV_EVENT_PRESSED);
-    }
+    gba_view_t* view = user_data;
+
+    uint32_t key_state = 0;
+
+#define BTN_STATE_DEF(obj, joypad_id)                  \
+    do {                                               \
+        if (lv_obj_has_state(obj, LV_STATE_PRESSED)) { \
+            key_state |= 1 << joypad_id;               \
+        }                                              \
+    } while (0)
+
+    BTN_STATE_DEF(view->btn.dir.up, GBA_JOYPAD_UP);
+    BTN_STATE_DEF(view->btn.dir.down, GBA_JOYPAD_DOWN);
+    BTN_STATE_DEF(view->btn.dir.left, GBA_JOYPAD_LEFT);
+    BTN_STATE_DEF(view->btn.dir.right, GBA_JOYPAD_RIGHT);
+
+    BTN_STATE_DEF(view->btn.func.A, GBA_JOYPAD_A);
+    BTN_STATE_DEF(view->btn.func.B, GBA_JOYPAD_B);
+    BTN_STATE_DEF(view->btn.func.L, GBA_JOYPAD_L);
+    BTN_STATE_DEF(view->btn.func.R, GBA_JOYPAD_R);
+
+    BTN_STATE_DEF(view->btn.ctrl.select, GBA_JOYPAD_SELECT);
+    BTN_STATE_DEF(view->btn.ctrl.start, GBA_JOYPAD_START);
+
+    return key_state;
 }
 
 static void btn_create(gba_context_t* ctx)
 {
+    const lv_coord_t cont_size = 110;
     gba_view_t* view = ctx->view;
-#define CONT_SIZE 110
     {
         lv_obj_t* cont = lv_obj_create(view->root);
 
         view->btn.dir.cont = cont;
 
-        lv_obj_set_size(cont, CONT_SIZE, CONT_SIZE);
+        lv_obj_set_size(cont, cont_size, cont_size);
         lv_obj_add_flag(cont, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
         lv_obj_set_style_pad_all(cont, 0, 0);
 
@@ -148,7 +168,7 @@ static void btn_create(gba_context_t* ctx)
 
         view->btn.func.cont = cont;
 
-        lv_obj_set_size(cont, CONT_SIZE, CONT_SIZE);
+        lv_obj_set_size(cont, cont_size, cont_size);
         lv_obj_set_style_pad_all(cont, 0, 0);
 
         lv_obj_t** btn_arr = &view->btn.func.A;
@@ -168,7 +188,7 @@ static void btn_create(gba_context_t* ctx)
 
         view->btn.ctrl.cont = cont;
 
-        lv_obj_set_size(cont, CONT_SIZE * 2, LV_SIZE_CONTENT);
+        lv_obj_set_size(cont, cont_size * 2, LV_SIZE_CONTENT);
         lv_obj_add_flag(cont, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
         lv_obj_set_style_pad_all(cont, 0, 0);
 
@@ -184,21 +204,7 @@ static void btn_create(gba_context_t* ctx)
         }
     }
 
-#define BTN_EVENT_ATTACH(BTN, ID) \
-    lv_obj_add_event_cb(view->btn.BTN, btn_event_cb, LV_EVENT_ALL, &ctx->key_state[GBA_JOYPAD_##ID]);
-
-    BTN_EVENT_ATTACH(dir.up, UP);
-    BTN_EVENT_ATTACH(dir.down, DOWN);
-    BTN_EVENT_ATTACH(dir.left, LEFT);
-    BTN_EVENT_ATTACH(dir.right, RIGHT);
-
-    BTN_EVENT_ATTACH(func.A, A);
-    BTN_EVENT_ATTACH(func.B, B);
-    BTN_EVENT_ATTACH(func.L, L);
-    BTN_EVENT_ATTACH(func.R, R);
-
-    BTN_EVENT_ATTACH(ctrl.start, START);
-    BTN_EVENT_ATTACH(ctrl.select, SELECT);
+    lv_gba_emu_add_input_read_cb(view->root, btn_read_cb, view);
 }
 
 bool gba_view_init(gba_context_t* ctx, lv_obj_t* par)

@@ -20,7 +20,7 @@ static int get_kbd_event_number()
     return number;
 }
 
-static void gba_input_update_cb(bool* key_state_arr, uint16_t len)
+static uint32_t gba_input_read_cb(void* user_data)
 {
     lv_indev_data_t data;
     static lv_indev_drv_t indev_drv;
@@ -51,14 +51,23 @@ static void gba_input_update_cb(bool* key_state_arr, uint16_t len)
         0
     };
 
-    for (int i = 0; i < len; i++) {
+    static uint32_t key_state = 0;
+
+    for (int i = 0; i < sizeof(key_map) / sizeof(key_map[0]); i++) {
         if (data.key == key_map[i]) {
-            key_state_arr[i] = (data.state == LV_INDEV_STATE_PRESSED);
+            uint32_t mask = 1 << i;
+            if (data.state == LV_INDEV_STATE_PRESSED) {
+                key_state |= mask;
+            } else {
+                key_state &= ~mask;
+            }
         }
     }
+
+    return key_state;
 }
 
-void gba_port_init(lv_obj_t* gba_emu)
+void gba_port_evdev_init(lv_obj_t* gba_emu)
 {
     int number = get_kbd_event_number();
     if (number >= 0) {
@@ -67,7 +76,7 @@ void gba_port_init(lv_obj_t* gba_emu)
         LV_LOG_USER("kbd_name: %s", kbd_event_name);
         evdev_set_file(kbd_event_name);
 
-        lv_gba_emu_set_input_update_cb(gba_emu, gba_input_update_cb);
+        lv_gba_emu_add_input_read_cb(gba_emu, gba_input_read_cb, NULL);
     } else {
         LV_LOG_WARN("can't get kbd event number");
     }

@@ -83,15 +83,18 @@ static size_t retro_audio_sample_batch_cb(const int16_t* data, size_t frames)
 
 static void retro_input_poll_cb(void)
 {
-    if (!gba_ctx_p->input_update_cb) {
-        return;
+    gba_ctx_p->key_state = 0;
+    gba_input_event_t* input_event;
+    _LV_LL_READ(&gba_ctx_p->input_event_ll, input_event)
+    {
+        uint32_t key_state = input_event->read_cb(input_event->user_data);
+        gba_ctx_p->key_state |= key_state;
     }
-    gba_ctx_p->input_update_cb(gba_ctx_p->key_state, _GBA_JOYPAD_MAX);
 }
 
 static int16_t retro_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id)
 {
-    return gba_ctx_p->key_state[id];
+    return gba_ctx_p->key_state & (1 << id);
 }
 
 void gba_retro_init(gba_context_t* ctx)

@@ -28,6 +28,7 @@ static void gba_context_init(gba_context_t* ctx)
 {
     LV_ASSERT_NULL(ctx);
     lv_memzero(ctx, sizeof(gba_context_t));
+    _lv_ll_init(&ctx->input_event_ll, sizeof(gba_input_event_t));
 }
 
 static void gba_emu_timer_cb(lv_timer_t* timer)
@@ -63,11 +64,14 @@ failed:
     return gba_view_get_root(&gba_ctx);
 }
 
-void lv_gba_emu_set_input_update_cb(lv_obj_t* gba_emu, lv_gba_emu_input_update_cb_t input_update_cb)
+void lv_gba_emu_add_input_read_cb(lv_obj_t* gba_emu, lv_gba_emu_input_read_cb_t read_cb, void* user_data)
 {
     gba_context_t* ctx = lv_obj_get_user_data(gba_emu);
     LV_ASSERT_NULL(ctx);
-    ctx->input_update_cb = input_update_cb;
+    gba_input_event_t* input_event = _lv_ll_ins_tail(&ctx->input_event_ll);
+    LV_ASSERT_MALLOC(input_event);
+    input_event->read_cb = read_cb;
+    input_event->user_data = user_data;
 }
 
 void lv_gba_emu_set_audio_output_cb(lv_obj_t* gba_emu, lv_gba_emu_audio_output_cb_t audio_output_cb)

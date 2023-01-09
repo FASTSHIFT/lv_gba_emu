@@ -24,6 +24,7 @@ add_definitions(
         -DLV_USE_PERF_MONITOR=1
         -DLV_SCREEN_HOR_RES=320
         -DLV_SCREEN_VER_RES=480
+        # -DUSE_EVDEV=1
 )
 
 # vba-next config
