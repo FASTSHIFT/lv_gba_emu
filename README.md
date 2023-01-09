@@ -21,7 +21,7 @@ LVGL Game Boy Advance Emulator
 git clone https://github.com/FASTSHIFT/lv_gba_emu.git --recurse-submodules
 ```
 
-## Build
+## Build & Run
 ```bash
 mkdir build
 cd build
