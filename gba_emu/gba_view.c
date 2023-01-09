@@ -29,6 +29,7 @@ struct gba_view_s {
     struct {
         lv_obj_t* canvas;
         lv_color_t* buf;
+        bool is_buf_allocated;
     } screen;
 
     struct {
@@ -104,6 +105,7 @@ static bool screen_create(gba_context_t* ctx)
         LV_LOG_ERROR("canvas buffer malloc failed");
         return false;
     }
+    view->screen.is_buf_allocated = true;
     lv_canvas_set_buffer(view->screen.canvas, view->screen.buf, width, height, LV_IMG_CF_TRUE_COLOR);
 #endif
     return true;
@@ -227,6 +229,16 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par)
     btn_create(ctx);
 
     return retval;
+}
+
+bool gba_view_deinit(gba_context_t* ctx)
+{
+    LV_ASSERT_NULL(ctx);
+    LV_ASSERT_NULL(ctx->view);
+    if (ctx->view->screen.is_buf_allocated) {
+        lv_free(ctx->view->screen.buf);
+    }
+    lv_free(ctx->view);
 }
 
 lv_obj_t* gba_view_get_root(gba_context_t* ctx)

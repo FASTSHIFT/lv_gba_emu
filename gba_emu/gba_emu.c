@@ -41,27 +41,44 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path)
 {
     LV_ASSERT_NULL(rom_file_path);
 
-    static gba_context_t gba_ctx;
-    gba_context_init(&gba_ctx);
+    gba_context_t* gba_ctx = lv_malloc(sizeof(gba_context_t));
+    LV_ASSERT_MALLOC(gba_ctx);
+    gba_context_init(gba_ctx);
 
-    gba_retro_init(&gba_ctx);
+    gba_retro_init(gba_ctx);
 
-    if (!gba_view_init(&gba_ctx, par)) {
+    if (!gba_view_init(gba_ctx, par)) {
         goto failed;
     }
 
     char real_path[128];
     lv_snprintf(real_path, sizeof(real_path), "/%s", rom_file_path);
 
-    if (!gba_retro_load_game(&gba_ctx, real_path)) {
+    if (!gba_retro_load_game(gba_ctx, real_path)) {
         LV_LOG_ERROR("load ROM: %s failed", real_path);
         goto failed;
     }
 
-    gba_ctx.timer = lv_timer_create(gba_emu_timer_cb, 1000 / gba_ctx.av_info.fps, &gba_ctx);
+    gba_ctx->timer = lv_timer_create(gba_emu_timer_cb, 1000 / gba_ctx->av_info.fps, &gba_ctx);
 
 failed:
-    return gba_view_get_root(&gba_ctx);
+    return gba_view_get_root(gba_ctx);
+}
+
+void lv_gba_emu_del(lv_obj_t* gba_emu)
+{
+    gba_context_t* gba_ctx = lv_obj_get_user_data(gba_emu);
+    LV_ASSERT_NULL(gba_ctx);
+
+    if (gba_ctx->timer) {
+        lv_timer_del(gba_ctx->timer);
+    }
+
+    gba_view_deinit(gba_ctx);
+    gba_retro_deinit(gba_ctx);
+    _lv_ll_clear(&gba_ctx->input_event_ll);
+    lv_free(gba_ctx);
+    lv_obj_del(gba_emu);
 }
 
 void lv_gba_emu_add_input_read_cb(lv_obj_t* gba_emu, lv_gba_emu_input_read_cb_t read_cb, void* user_data)

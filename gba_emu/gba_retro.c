@@ -117,6 +117,11 @@ void gba_retro_init(gba_context_t* ctx)
     ctx->av_info.sample_rate = av_info.timing.sample_rate;
 }
 
+void gba_retro_deinit(gba_context_t* ctx)
+{
+    retro_deinit();
+}
+
 bool gba_retro_load_game(gba_context_t* ctx, const char* path)
 {
     struct retro_game_info info;
