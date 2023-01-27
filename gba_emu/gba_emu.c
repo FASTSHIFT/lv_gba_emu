@@ -75,7 +75,7 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path)
     lv_snprintf(real_path, sizeof(real_path), "/%s", rom_file_path);
 
     if (!gba_emu_change_rom_size(real_path)) {
-        goto failed;
+        return NULL;
     }
 
     gba_retro_init(gba_ctx);
