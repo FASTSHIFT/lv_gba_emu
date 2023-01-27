@@ -1,5 +1,4 @@
-# lv_gba_emu
-LVGL Game Boy Advance Emulator
+# LVGL Game Boy Advance Emulator
 
 ![image](https://github.com/FASTSHIFT/lv_gba_emu/blob/main/images/lv_gba_emu_2.png)
 
