@@ -37,6 +37,32 @@ static void gba_emu_timer_cb(lv_timer_t* timer)
     gba_retro_run(gba_ctx);
 }
 
+static bool gba_emu_change_rom_size(const char* path)
+{
+    lv_fs_file_t file;
+    lv_fs_res_t res = lv_fs_open(&file, path, LV_FS_MODE_RD);
+    if (res != LV_FS_RES_OK) {
+        LV_LOG_ERROR("open %s failed: %d", path, res);
+        return false;
+    }
+
+    lv_fs_seek(&file, 0, LV_FS_SEEK_END);
+
+    uint32_t pos;
+    res = lv_fs_tell(&file, &pos);
+    lv_fs_close(&file);
+
+    if (res != LV_FS_RES_OK) {
+        LV_LOG_ERROR("get file size failed: %d", res);
+        return false;
+    }
+
+    void gba_set_rom_size(int size);
+    gba_set_rom_size(pos);
+    LV_LOG_USER("ROM: %s size = %" LV_PRIu32 " Bytes", path, pos);
+    return true;
+}
+
 lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path)
 {
     LV_ASSERT_NULL(rom_file_path);
@@ -45,14 +71,18 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path)
     LV_ASSERT_MALLOC(gba_ctx);
     gba_context_init(gba_ctx);
 
+    char real_path[128];
+    lv_snprintf(real_path, sizeof(real_path), "/%s", rom_file_path);
+
+    if (!gba_emu_change_rom_size(real_path)) {
+        goto failed;
+    }
+
     gba_retro_init(gba_ctx);
 
     if (!gba_view_init(gba_ctx, par)) {
         goto failed;
     }
-
-    char real_path[128];
-    lv_snprintf(real_path, sizeof(real_path), "/%s", rom_file_path);
 
     if (!gba_retro_load_game(gba_ctx, real_path)) {
         LV_LOG_ERROR("load ROM: %s failed", real_path);
