@@ -4,6 +4,3 @@
 [submodule "lvgl"]
 	path = lvgl
 	url = https://github.com/lvgl/lvgl.git
-[submodule "vba-next"]
-	path = vba-next
-	url = https://github.com/libretro/vba-next.git
