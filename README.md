@@ -13,8 +13,12 @@ LVGL Game Boy Advance Emulator
 * Support to use GBA framebuffer directly as `lv_canvas` buffer, zero copy overhead.
 
 ## To be completed
-* Audio output support.
-* Memory usage optimization.
+
+- [ ] Audio output support.
+- [x] Frame rate control support.
+- [x] Optimize key mapping and decouple from linux event device.
+- [x] Virtual key support.
+- [x] Memory usage optimization.
 
 ## Clone
 ```bash
