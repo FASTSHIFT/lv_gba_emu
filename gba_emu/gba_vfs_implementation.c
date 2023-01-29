@@ -114,7 +114,7 @@ int64_t retro_vfs_file_read_impl(libretro_vfs_implementation_file* stream, void*
 
     uint32_t br;
     lv_fs_res_t res = lv_fs_read(file_p, s, len, &br);
-    return res == LV_FS_RES_OK ? br : -1;
+    return res == LV_FS_RES_OK ? (int64_t)br : -1;
 }
 
 int64_t retro_vfs_file_write_impl(libretro_vfs_implementation_file* stream, const void* s, uint64_t len)
@@ -123,7 +123,7 @@ int64_t retro_vfs_file_write_impl(libretro_vfs_implementation_file* stream, cons
 
     uint32_t bw;
     lv_fs_res_t res = lv_fs_write(file_p, s, len, &bw);
-    return res == LV_FS_RES_OK ? bw : -1;
+    return res == LV_FS_RES_OK ? (int64_t)bw : -1;
 }
 
 int retro_vfs_file_flush_impl(libretro_vfs_implementation_file* stream)
