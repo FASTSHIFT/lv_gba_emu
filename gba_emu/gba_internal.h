@@ -81,7 +81,7 @@ bool gba_retro_load_game(gba_context_t* ctx, const char* path);
 void gba_retro_run(gba_context_t* ctx);
 
 bool gba_view_init(gba_context_t* ctx, lv_obj_t* par);
-bool gba_view_deinit(gba_context_t* ctx);
+void gba_view_deinit(gba_context_t* ctx);
 lv_obj_t* gba_view_get_root(gba_context_t* ctx);
 void gba_view_draw_frame(gba_context_t* ctx, const uint16_t* buf, lv_coord_t width, lv_coord_t height);
 

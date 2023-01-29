@@ -231,7 +231,7 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par)
     return retval;
 }
 
-bool gba_view_deinit(gba_context_t* ctx)
+void gba_view_deinit(gba_context_t* ctx)
 {
     LV_ASSERT_NULL(ctx);
     LV_ASSERT_NULL(ctx->view);
