@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Platform config
 
-set(DISABLE_ASAN 0)
-set(CMAKE_BUILD_TYPE "Debug")
-# set(CMAKE_BUILD_TYPE "Release")
+set(DISABLE_ASAN 1)
+# set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "Release")
 
 # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
