@@ -62,9 +62,21 @@ static bool retro_environment_cb(unsigned cmd, void* data)
     }
     case RETRO_ENVIRONMENT_GET_VARIABLE: {
         struct retro_variable* var = data;
-        LV_LOG_USER("get var: %s", var->key);
+        LV_LOG_USER("GET_VARIABLE: %s", var->key);
         if (strcmp(var->key, "vbanext_frameskip") == 0) {
             var->value = GBA_FRAME_SKIP;
+        }
+        break;
+    }
+    case RETRO_ENVIRONMENT_SET_MEMORY_MAPS: {
+        struct retro_memory_map* mmaps = data;
+        const struct retro_memory_descriptor* descs = mmaps->descriptors;
+        for (int i = 0; i < mmaps->num_descriptors; i++) {
+            LV_LOG_USER(
+                "SET_MEMORY_MAPS: "
+                "address space = %s\tptr = %p\tstart = %zx\tlen = %zu",
+                descs->addrspace, descs->ptr, descs->start, descs->len);
+            descs++;
         }
         break;
     }
