@@ -218,6 +218,7 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par)
     lv_obj_t* root = lv_obj_create(par);
     {
         view->root = root;
+        lv_obj_clear_flag(root, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_set_user_data(root, ctx);
         lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
         lv_obj_set_style_pad_all(root, 20, 0);
