@@ -25,6 +25,9 @@
 #include <math.h>
 
 #define GBA_FB_STRIDE 256
+#ifndef GBA_FRAME_SKIP
+#define GBA_FRAME_SKIP "0"
+#endif
 
 static gba_context_t* gba_ctx_p = NULL;
 
@@ -55,6 +58,14 @@ static bool retro_environment_cb(unsigned cmd, void* data)
     case RETRO_ENVIRONMENT_GET_LOG_INTERFACE: {
         struct retro_log_callback* log = data;
         log->log = retro_log_printf_cb;
+        break;
+    }
+    case RETRO_ENVIRONMENT_GET_VARIABLE: {
+        struct retro_variable* var = data;
+        LV_LOG_USER("get var: %s", var->key);
+        if (strcmp(var->key, "vbanext_frameskip") == 0) {
+            var->value = GBA_FRAME_SKIP;
+        }
         break;
     }
     default:

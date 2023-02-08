@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Platform config
 
+set(DISABLE_ASAN 0)
 set(CMAKE_BUILD_TYPE "Debug")
 # set(CMAKE_BUILD_TYPE "Release")
 
@@ -35,7 +36,7 @@ add_definitions(
         -DSTATIC_LINKING=0
         -DUSE_TWEAKS=0
         -DUSE_THREADED_RENDERER=0
-        -DUSE_FRAME_SKIP=0
+        -DUSE_FRAME_SKIP=1
         -DHAVE_NEON=0
 
         -DNDEBUG
@@ -43,6 +44,8 @@ add_definitions(
         -DINLINE=inline
         -DHAVE_STDINT_H
         -DHAVE_INTTYPES_H
+
+        -DGBA_FRAME_SKIP="0"
 )
 
 ## Others
