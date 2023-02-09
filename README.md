@@ -10,14 +10,16 @@
 * The emulator kernel is based on [vba-next](https://github.com/libretro/vba-next) and does not depend on any third-party libraries.
 * Decoupled from the OS, only relying on lvgl's memory allocation and file access interface.
 * Support to use GBA framebuffer directly as `lv_canvas` buffer, zero copy overhead.
+* Audio output.
+* Frame rate control.
+* Multiple input device.
+* Virtual key.
+* Memory usage optimization.
 
-## To be completed
+## To Do
 
-- [x] Audio output support.
-- [x] Frame rate control support.
-- [x] Optimize key mapping and decouple from linux event device.
-- [x] Virtual key support.
-- [x] Memory usage optimization.
+- [ ] Game saves.
+- [ ] Game Launcher.
 
 ## Clone
 ```bash
