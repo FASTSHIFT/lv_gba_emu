@@ -72,7 +72,6 @@ int main(int argc, const char* argv[])
 
     while (true) {
         uint32_t sleep_ms = lv_timer_handler();
-        sleep_ms = sleep_ms == 0 ? 1 : sleep_ms;
         lv_port_sleep(sleep_ms);
     }
 }
