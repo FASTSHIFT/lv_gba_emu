@@ -144,6 +144,7 @@ void gba_retro_init(gba_context_t* ctx)
 void gba_retro_deinit(gba_context_t* ctx)
 {
     LV_ASSERT_NULL(gba_ctx_p);
+    retro_unload_game();
     retro_deinit();
     gba_ctx_p = NULL;
 }
