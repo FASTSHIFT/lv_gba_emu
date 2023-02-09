@@ -13,7 +13,7 @@
 
 ## To be completed
 
-- [ ] Audio output support.
+- [x] Audio output support.
 - [x] Frame rate control support.
 - [x] Optimize key mapping and decouple from linux event device.
 - [x] Virtual key support.

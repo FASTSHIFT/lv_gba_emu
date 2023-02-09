@@ -72,7 +72,8 @@ typedef struct gba_context_s {
 
     uint32_t key_state;
     lv_ll_t input_event_ll;
-    size_t (*audio_output_cb)(const int16_t* data, size_t frames);
+    size_t (*audio_output_cb)(void* user_data, const int16_t* data, size_t frames);
+    void* audio_output_user_data;
 } gba_context_t;
 
 void gba_retro_init(gba_context_t* ctx);

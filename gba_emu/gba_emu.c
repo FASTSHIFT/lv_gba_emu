@@ -121,9 +121,17 @@ void lv_gba_emu_add_input_read_cb(lv_obj_t* gba_emu, lv_gba_emu_input_read_cb_t 
     input_event->user_data = user_data;
 }
 
-void lv_gba_emu_set_audio_output_cb(lv_obj_t* gba_emu, lv_gba_emu_audio_output_cb_t audio_output_cb)
+int lv_gba_emu_get_audio_sample_rate(lv_obj_t* gba_emu)
+{
+    gba_context_t* ctx = lv_obj_get_user_data(gba_emu);
+    LV_ASSERT_NULL(ctx);
+    return (int)ctx->av_info.sample_rate;
+}
+
+void lv_gba_emu_set_audio_output_cb(lv_obj_t* gba_emu, lv_gba_emu_audio_output_cb_t audio_output_cb, void* user_data)
 {
     gba_context_t* ctx = lv_obj_get_user_data(gba_emu);
     LV_ASSERT_NULL(ctx);
     ctx->audio_output_cb = audio_output_cb;
+    ctx->audio_output_user_data = user_data;
 }

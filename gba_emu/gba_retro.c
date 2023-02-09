@@ -101,7 +101,7 @@ static size_t retro_audio_sample_batch_cb(const int16_t* data, size_t frames)
     if (!gba_ctx_p->audio_output_cb) {
         return 0;
     }
-    return gba_ctx_p->audio_output_cb(data, frames);
+    return gba_ctx_p->audio_output_cb(gba_ctx_p->audio_output_user_data, data, frames);
 }
 
 static void retro_input_poll_cb(void)
