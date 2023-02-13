@@ -14,7 +14,7 @@
 * Frame rate control.
 * Multiple input device.
 * Virtual key.
-* Memory usage optimization(~750KB + ROM size).
+* Memory usage optimization(~800KB + ROM size).
 
 ## To Do
 
