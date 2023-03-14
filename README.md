@@ -34,3 +34,17 @@ cmake ..
 make -j
 ./Simulator ../rom/OpenLara.gba
 ```
+## Key Mapping
+### SDL2
+|KeyBoard|GBA|
+|-|-|
+|Backspace|Select|
+|Tab|Start|
+|Up|Up|
+|Down|Down|
+|Left|Left|
+|Right|Right|
+|X|B|
+|Z|A|
+|L|L|
+|R|R|
