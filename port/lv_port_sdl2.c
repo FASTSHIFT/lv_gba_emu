@@ -49,10 +49,6 @@ int lv_port_init(void)
     lv_indev_set_disp(mousewheel, disp);
     lv_indev_set_group(mousewheel, lv_group_get_default());
 
-    // lv_indev_t* keyboard = lv_sdl_keyboard_create();
-    // lv_indev_set_disp(keyboard, disp);
-    // lv_indev_set_group(keyboard, lv_group_get_default());
-
     return 0;
 }
 
