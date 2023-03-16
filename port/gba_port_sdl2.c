@@ -1,7 +1,5 @@
-#include "gba_emu/gba_emu.h"
-
-#if 1
-
+#include "port.h"
+#include "../gba_emu/gba_emu.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_keycode.h>
 
@@ -151,5 +149,3 @@ void gba_port_sdl_init(lv_obj_t* gba_emu)
     lv_gba_emu_add_input_read_cb(gba_emu, gba_input_update_cb, NULL);
     gba_audio_init(gba_emu);
 }
-
-#endif

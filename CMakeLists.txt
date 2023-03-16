@@ -17,14 +17,9 @@ set(CMAKE_BUILD_TYPE "Release")
 ## Common
 # LVGL config
 add_definitions(
-        -DLV_USE_FS_STDIO=1
-        -DLV_USE_LOG=1
-        -DLV_USE_ASSERT=1
-        -DLV_USE_BUILTIN_MALLOC=1
-        -DLV_USE_MEM_MONITOR=1
-        -DLV_USE_PERF_MONITOR=1
         -DLV_SCREEN_HOR_RES=320
         -DLV_SCREEN_VER_RES=480
+        -DLV_USE_DEV_VERSION=1
         # -DUSE_EVDEV=1
 )
 
@@ -82,14 +77,11 @@ include_directories(
 )
 
 # Sources
-## lvgl porting
-file(GLOB LV_PORT_SOURCES "lv_port/*.c")
+## porting
+file(GLOB PORT_SOURCES "port/*.c")
 
 ## gba emu
 file(GLOB GBA_EMU_SOURCES "gba_emu/*.c*")
-
-## gba port
-file(GLOB GBA_PORT_SOURCES "gba_port_*.c*")
 
 ## vba-next
 file(GLOB VBA_NEXT_SOURCE
@@ -106,7 +98,7 @@ file(GLOB VBA_NEXT_SOURCE
 
 ## ALL SOURCES
 set(SOURCES
-        ${LV_PORT_SOURCES}
+        ${PORT_SOURCES}
         ${GBA_EMU_SOURCES}
         ${GBA_PORT_SOURCES}
         ${VBA_NEXT_SOURCE}
@@ -114,7 +106,6 @@ set(SOURCES
 
 # Subdirectory
 add_subdirectory(${PROJECT_SOURCE_DIR}/lvgl ${PROJECT_BINARY_DIR}/build_lvgl)
-add_subdirectory(${PROJECT_SOURCE_DIR}/lv_drivers ${PROJECT_BINARY_DIR}/build_lv_drivers)
 
 # Executable
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -126,7 +117,6 @@ target_link_libraries(
         lvgl
         lvgl::examples
         lvgl::demos
-        lvgl::drivers
         ${SDL2_LIBRARIES}
 )
 

@@ -21,13 +21,10 @@
  * SOFTWARE.
  */
 #include "gba_emu/gba_emu.h"
-#include "lv_port/lv_port.h"
 #include "lvgl/lvgl.h"
+#include "port/port.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-void gba_port_sdl_init(lv_obj_t* gba_emu);
-void gba_port_evdev_init(lv_obj_t* gba_emu);
 
 static void log_print_cb(lv_log_level_t level, const char* str)
 {
@@ -56,18 +53,10 @@ int main(int argc, const char* argv[])
     }
 
     lv_obj_t* gba_emu = lv_gba_emu_create(lv_scr_act(), rom_file_path);
+
     if (gba_emu) {
-        lv_obj_center(gba_emu);
-
-#if USE_SDL
-        void gba_port_sdl_init(lv_obj_t * gba_emu);
         gba_port_sdl_init(gba_emu);
-#endif
-
-#if USE_EVDEV
-        void gba_port_evdev_init(lv_obj_t * gba_emu);
-        gba_port_evdev_init(gba_emu);
-#endif
+        lv_obj_center(gba_emu);
     }
 
     while (true) {

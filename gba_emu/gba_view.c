@@ -106,7 +106,7 @@ static bool screen_create(gba_context_t* ctx)
         return false;
     }
     view->screen.is_buf_allocated = true;
-    lv_canvas_set_buffer(view->screen.canvas, view->screen.buf, width, height, LV_IMG_CF_TRUE_COLOR);
+    lv_canvas_set_buffer(view->screen.canvas, view->screen.buf, width, height, LV_COLOR_FORMAT_NATIVE);
 #endif
     return true;
 }
@@ -255,7 +255,7 @@ void gba_view_draw_frame(gba_context_t* ctx, const uint16_t* buf, lv_coord_t wid
 #if (LV_COLOR_DEPTH == 16)
     if (ctx->view->screen.buf != (lv_color_t*)buf) {
         ctx->view->screen.buf = (lv_color_t*)buf;
-        lv_canvas_set_buffer(canvas, ctx->view->screen.buf, ctx->av_info.fb_stride, height, LV_IMG_CF_TRUE_COLOR);
+        lv_canvas_set_buffer(canvas, ctx->view->screen.buf, ctx->av_info.fb_stride, height, LV_COLOR_FORMAT_NATIVE);
         lv_obj_set_width(canvas, width);
         LV_LOG_USER("set direct canvas buffer = %p", ctx->view->screen.buf);
     }
@@ -265,7 +265,7 @@ void gba_view_draw_frame(gba_context_t* ctx, const uint16_t* buf, lv_coord_t wid
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            dst->full = lv_color_make(src->ch.red << 3, src->ch.green << 2, src->ch.blue << 3).full;
+            *dst = lv_color_make(src->red << 3, src->green << 2, src->blue << 3);
             dst++;
             src++;
         }
