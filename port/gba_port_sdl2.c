@@ -69,7 +69,7 @@ static uint32_t gba_input_update_cb(void* user_data)
         0 /* GBA_JOYPAD_R3 */
     };
 
-    const int8_t* kbstate = SDL_GetKeyboardState(NULL);
+    const uint8_t* kbstate = SDL_GetKeyboardState(NULL);
 
     uint32_t key_state = 0;
 
@@ -142,6 +142,7 @@ static int gba_audio_init(lv_obj_t* gba_emu)
     lv_gba_emu_set_audio_output_cb(gba_emu, gba_audio_output_cb, &audio_fifo);
 
     SDL_PauseAudio(0);
+    return 0;
 }
 
 void gba_port_sdl_init(lv_obj_t* gba_emu)
