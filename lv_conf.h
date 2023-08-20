@@ -263,8 +263,8 @@
 
 /*Enable asserts if an operation is failed or an invalid data is found.
  *If LV_USE_LOG is enabled an error message will be printed on failure*/
-#define LV_USE_ASSERT_NULL          1   /*Check if the parameter is NULL. (Very fast, recommended)*/
-#define LV_USE_ASSERT_MALLOC        1   /*Checks is the memory is successfully allocated or no. (Very fast, recommended)*/
+#define LV_USE_ASSERT_NULL          0   /*Check if the parameter is NULL. (Very fast, recommended)*/
+#define LV_USE_ASSERT_MALLOC        0   /*Checks is the memory is successfully allocated or no. (Very fast, recommended)*/
 #define LV_USE_ASSERT_STYLE         0   /*Check if the styles are properly initialized. (Very fast, recommended)*/
 #define LV_USE_ASSERT_MEM_INTEGRITY 0   /*Check the integrity of `lv_mem` after critical operations. (Slow)*/
 #define LV_USE_ASSERT_OBJ           0   /*Check the object's type and existence (e.g. not deleted). (Slow)*/
@@ -747,7 +747,9 @@
  *==================*/
 
 /*Use SDL to open window on PC and handle mouse and keyboard*/
+#ifndef LV_USE_SDL
 #define LV_USE_SDL              1
+#endif
 #if LV_USE_SDL
     #define LV_SDL_INCLUDE_PATH    <SDL2/SDL.h>
     #define LV_SDL_PARTIAL_MODE    0    /*Recommended only to emulate a setup with a display controller*/

@@ -159,5 +159,7 @@ bool gba_retro_load_game(gba_context_t* ctx, const char* path)
 
 void gba_retro_run(gba_context_t* ctx)
 {
+    uint32_t start = lv_tick_get();
     retro_run();
+    LV_LOG_USER("cost %dms", lv_tick_elaps(start));
 }

@@ -20,6 +20,8 @@ add_definitions(
         -DLV_SCREEN_HOR_RES=320
         -DLV_SCREEN_VER_RES=480
         -DLV_USE_DEV_VERSION=1
+        -DLV_USE_RPI=1
+        -DLV_USE_SDL=0
         # -DUSE_EVDEV=1
 )
 
@@ -79,6 +81,7 @@ include_directories(
 # Sources
 ## porting
 file(GLOB PORT_SOURCES "port/*.c")
+file(GLOB PORT_SOURCES "port/*/*.c")
 
 ## gba emu
 file(GLOB GBA_EMU_SOURCES "gba_emu/*.c*")
@@ -117,6 +120,8 @@ target_link_libraries(
         lvgl
         lvgl::examples
         lvgl::demos
+        wiringPi
+        pthread
         ${SDL2_LIBRARIES}
 )
 
