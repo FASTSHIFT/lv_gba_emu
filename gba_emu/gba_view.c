@@ -227,7 +227,9 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par)
 
     bool retval = screen_create(ctx);
 
+#ifdef LV_GBA_USE_VIRTUAL_BTN
     btn_create(ctx);
+#endif
 
     return retval;
 }

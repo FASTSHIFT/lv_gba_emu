@@ -29,8 +29,8 @@
 #define DISP_DC_PIN 25
 #define DISP_BLK_PIN 24
 
-#define HOR_RES 240
-#define VER_RES 320
+#define HOR_RES 320
+#define VER_RES 240
 
 /**********************
  *      TYPEDEFS
@@ -52,6 +52,8 @@ typedef struct {
  **********************/
 
 static void disp_flush_cb(lv_disp_t* disp, const lv_area_t* area, lv_color_t* color_p);
+static void disp_wait_cb(lv_disp_t* disp);
+static void* disp_thread(void* arg);
 
 /**********************
  *  STATIC VARIABLES
@@ -96,16 +98,18 @@ int lv_port_init(void)
     static pthread_t thread_id;
     pthread_create(&thread_id, NULL, disp_thread, &ctx);
 
-    static uint16_t draw_buf[HOR_RES * VER_RES];
+    static uint16_t draw_buf1[HOR_RES * VER_RES];
+    static uint16_t draw_buf2[HOR_RES * VER_RES];
 
-    lv_disp_t* disp = lv_disp_create(HOR_RES, HOR_VER);
+    lv_disp_t* disp = lv_disp_create(HOR_RES, VER_RES);
     lv_disp_set_user_data(disp, &ctx);
     lv_disp_set_flush_cb(disp, disp_flush_cb);
+    disp->wait_cb = disp_wait_cb;
     lv_disp_set_draw_buffers(
         disp,
-        draw_buf,
-        NULL,
-        sizeof(draw_buf),
+        draw_buf1,
+        draw_buf2,
+        sizeof(draw_buf1),
         LV_DISP_RENDER_MODE_PARTIAL);
 
     return 0;
@@ -150,10 +154,6 @@ static void disp_flush(disp_refr_ctx_t* ctx, int16_t x, int16_t y, const uint16_
     sem_post(&ctx->flush_sem);
 }
 
-static void disp_wait(disp_refr_ctx_t* ctx)
-{
-    sem_wait(&ctx->wait_sem);
-}
 
 static void disp_flush_cb(lv_disp_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
@@ -161,8 +161,13 @@ static void disp_flush_cb(lv_disp_t* disp, const lv_area_t* area, lv_color_t* co
     lv_coord_t h = (area->y2 - area->y1 + 1);
 
     disp_refr_ctx_t* ctx = lv_disp_get_user_data(disp);
-    disp_flush(ctx, area->x1, area->y1, color_p, w, h);
-    disp_wait(ctx);
+    disp_flush(ctx, area->x1, area->y1, (uint16_t*)color_p, w, h);    
+}
+
+static void disp_wait_cb(lv_disp_t* disp)
+{
+    disp_refr_ctx_t* ctx = lv_disp_get_user_data(disp);
+    sem_wait(&ctx->wait_sem);
     lv_disp_flush_ready(disp);
 }
 

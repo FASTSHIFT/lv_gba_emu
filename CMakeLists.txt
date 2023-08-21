@@ -20,8 +20,8 @@ add_definitions(
         -DLV_SCREEN_HOR_RES=320
         -DLV_SCREEN_VER_RES=480
         -DLV_USE_DEV_VERSION=1
-        -DLV_USE_RPI=0
-        -DLV_USE_SDL=1
+        -DLV_USE_RPI=1
+        -DLV_USE_SDL=0
         # -DUSE_EVDEV=1
 )
 
@@ -82,8 +82,8 @@ include_directories(
 ## porting
 file(GLOB PORT_SOURCES "port/*.c")
 
-if (LV_USE_RPI)
-file(GLOB PORT_SOURCES "port/rpi/*.c")
+if (1)
+file(GLOB PORT_RPI_SOURCES "port/rpi/*.c")
 set(RPI_LINK_LIBS wiringPi pthread)
 endif ()
 
@@ -106,6 +106,7 @@ file(GLOB VBA_NEXT_SOURCE
 ## ALL SOURCES
 set(SOURCES
         ${PORT_SOURCES}
+        ${PORT_RPI_SOURCES}
         ${GBA_EMU_SOURCES}
         ${GBA_PORT_SOURCES}
         ${VBA_NEXT_SOURCE}
