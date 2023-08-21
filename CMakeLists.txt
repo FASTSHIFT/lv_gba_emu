@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Platform config
 
-set(DISABLE_ASAN 1)
+set(ENABLE_ASAN 0)
 # set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_BUILD_TYPE "Release")
 
@@ -62,7 +62,7 @@ elseif (UNIX) # MAC or LINUX
         )
 
         # Address Sanitizer
-        if (NOT DISABLE_ASAN)
+        if (ENABLE_ASAN)
                 set(ASAN_FLAGS "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer")
                 add_definitions(${ASAN_FLAGS})
                 set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${ASAN_FLAGS})
