@@ -31,6 +31,8 @@ int lv_port_init(void);
 
 void lv_port_sleep(uint32_t ms);
 
+uint32_t lv_port_tick_get(void);
+
 void gba_port_sdl_init(lv_obj_t* gba_emu);
 
 /**********************

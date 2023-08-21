@@ -11,6 +11,7 @@
 #if LV_USE_RPI
 
 #include "port.h"
+#include <time.h>
 #include <unistd.h>
 
 /*********************
@@ -46,6 +47,15 @@ int lv_port_init(void)
 void lv_port_sleep(uint32_t ms)
 {
     usleep(ms * 1000);
+}
+
+uint32_t lv_port_tick_get(void)
+{
+    struct timespec ts;
+    uint32_t ms;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    ms = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+    return ms;
 }
 
 /**********************

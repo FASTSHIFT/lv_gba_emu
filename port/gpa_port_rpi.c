@@ -1,7 +1,7 @@
 #include "port.h"
 #include "../gba_emu/gba_emu.h"
 
-#ifdef LV_USE_RPI
+#if LV_USE_RPI
 
 #define AUDIO_FIFO_LEN 16384
 
@@ -50,7 +50,7 @@ static int audio_fifo_avaliable(audio_fifo_t* fifo)
 
 static uint32_t gba_input_update_cb(void* user_data)
 {
-    static const SDL_Keycode key_map[] = {
+    static const int key_map[] = {
         0, /* GBA_JOYPAD_B */
         0, /* GBA_JOYPAD_Y */
         0, /* GBA_JOYPAD_SELECT */
@@ -69,7 +69,7 @@ static uint32_t gba_input_update_cb(void* user_data)
         0 /* GBA_JOYPAD_R3 */
     };
 
-    const uint8_t* kbstate = SDL_GetKeyboardState(NULL);
+    const uint8_t* kbstate = NULL;
 
     uint32_t key_state = 0;
 
@@ -127,7 +127,7 @@ static int gba_audio_init(lv_obj_t* gba_emu)
     return 0;
 }
 
-void gba_port_sdl_init(lv_obj_t* gba_emu)
+void gba_port_init(lv_obj_t* gba_emu)
 {
     lv_gba_emu_add_input_read_cb(gba_emu, gba_input_update_cb, NULL);
     gba_audio_init(gba_emu);

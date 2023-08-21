@@ -57,6 +57,11 @@ void lv_port_sleep(uint32_t ms)
     usleep(ms * 1000);
 }
 
+uint32_t lv_port_tick_get(void)
+{
+    return SDL_GetTicks();
+}
+
 /**********************
  *   STATIC FUNCTIONS
  **********************/

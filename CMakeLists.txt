@@ -20,8 +20,8 @@ add_definitions(
         -DLV_SCREEN_HOR_RES=320
         -DLV_SCREEN_VER_RES=480
         -DLV_USE_DEV_VERSION=1
-        -DLV_USE_RPI=1
-        -DLV_USE_SDL=0
+        -DLV_USE_RPI=0
+        -DLV_USE_SDL=1
         # -DUSE_EVDEV=1
 )
 
@@ -81,7 +81,11 @@ include_directories(
 # Sources
 ## porting
 file(GLOB PORT_SOURCES "port/*.c")
-file(GLOB PORT_SOURCES "port/*/*.c")
+
+if (LV_USE_RPI)
+file(GLOB PORT_SOURCES "port/rpi/*.c")
+set(RPI_LINK_LIBS wiringPi pthread)
+endif ()
 
 ## gba emu
 file(GLOB GBA_EMU_SOURCES "gba_emu/*.c*")
@@ -118,10 +122,9 @@ add_executable(Simulator main.c ${SOURCES} ${INCLUDES})
 target_link_libraries(
         Simulator PRIVATE
         lvgl
-        lvgl::examples
-        lvgl::demos
-        wiringPi
-        pthread
+        # lvgl::examples
+        # lvgl::demos
+        ${RPI_LINK_LIBS}
         ${SDL2_LIBRARIES}
 )
 

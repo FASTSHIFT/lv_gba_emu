@@ -55,7 +55,7 @@ int main(int argc, const char* argv[])
     lv_obj_t* gba_emu = lv_gba_emu_create(lv_scr_act(), rom_file_path);
 
     if (gba_emu) {
-        gba_port_sdl_init(gba_emu);
+        gba_port_init(gba_emu);
         lv_obj_center(gba_emu);
     }
 
