@@ -32,7 +32,7 @@ mkdir build
 cd build
 cmake ..
 make -j
-./Simulator ../rom/OpenLara.gba
+./Simulator -f ../rom/OpenLara.gba
 ```
 ## Key Mapping
 ### SDL2
