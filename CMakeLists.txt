@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(Simulator)
+project(gba_emu)
 
 # C/C++ version
 set(CMAKE_C_STANDARD 99)
@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD 11)
 # Platform config
 
 set(ENABLE_ASAN 0)
-# set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
+# set(CMAKE_BUILD_TYPE "Release")
 
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
@@ -118,11 +118,11 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/lvgl ${PROJECT_BINARY_DIR}/build_lvgl)
 
 # Executable
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-add_executable(Simulator main.c ${SOURCES} ${INCLUDES})
+add_executable(gba_emu main.c ${SOURCES} ${INCLUDES})
 
 # Link
 target_link_libraries(
-        Simulator PRIVATE
+        gba_emu PRIVATE
         lvgl
         # lvgl::examples
         # lvgl::demos
@@ -131,7 +131,7 @@ target_link_libraries(
 )
 
 set_target_properties(
-        Simulator
+        gba_emu
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/build"
 )
