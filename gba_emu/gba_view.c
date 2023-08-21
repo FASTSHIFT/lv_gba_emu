@@ -86,11 +86,7 @@ static bool screen_create(gba_context_t* ctx)
     gba_view_t* view = ctx->view;
 
     lv_obj_t* canvas = lv_canvas_create(view->root);
-    {
-        view->screen.canvas = canvas;
-        lv_obj_set_style_outline_color(canvas, lv_theme_get_color_primary(canvas), 0);
-        lv_obj_set_style_outline_width(canvas, 5, 0);
-    }
+    view->screen.canvas = canvas;
 
 #if (LV_COLOR_DEPTH != 16)
     lv_coord_t width = ctx->av_info.fb_width;
@@ -209,7 +205,7 @@ static void btn_create(gba_context_t* ctx)
     lv_gba_emu_add_input_read_cb(view->root, btn_read_cb, view);
 }
 
-bool gba_view_init(gba_context_t* ctx, lv_obj_t* par)
+bool gba_view_init(gba_context_t* ctx, lv_obj_t* par, int mode)
 {
     gba_view_t* view = lv_malloc(sizeof(gba_view_t));
     LV_ASSERT_MALLOC(view);
@@ -227,9 +223,15 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par)
 
     bool retval = screen_create(ctx);
 
-#ifdef LV_GBA_USE_VIRTUAL_BTN
-    btn_create(ctx);
-#endif
+    if (mode != LV_GBA_VIEW_MODE_CANVAS_ONLY) {
+        lv_obj_t* canvas = view->screen.canvas;
+        lv_obj_set_style_outline_color(canvas, lv_theme_get_color_primary(canvas), 0);
+        lv_obj_set_style_outline_width(canvas, 5, 0);
+    }
+
+    if (mode == LV_GBA_VIEW_MODE_VIRTUAL_KEYPAD) {
+        btn_create(ctx);
+    }
 
     return retval;
 }

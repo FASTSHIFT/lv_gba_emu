@@ -63,7 +63,7 @@ static bool gba_emu_change_rom_size(const char* path)
     return true;
 }
 
-lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path)
+lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path, lv_gba_view_mode_t mode)
 {
     LV_ASSERT_NULL(rom_file_path);
 
@@ -80,7 +80,7 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path)
 
     gba_retro_init(gba_ctx);
 
-    if (!gba_view_init(gba_ctx, par)) {
+    if (!gba_view_init(gba_ctx, par, mode)) {
         goto failed;
     }
 

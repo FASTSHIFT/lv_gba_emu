@@ -25,6 +25,67 @@
 #include "port/port.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+
+#define GBA_EMU_PREFIX "gba_emu: "
+
+#define OPTARG_TO_VALUE(value, type, base)                                  \
+    do {                                                                    \
+        char* ptr;                                                          \
+        (value) = (type)strtoul(optarg, &ptr, (base));                      \
+        if (*ptr != '\0') {                                                 \
+            printf(GBA_EMU_PREFIX "Parameter error: -%c %s\n", ch, optarg); \
+            show_usage(argv[0], EXIT_FAILURE);                              \
+        }                                                                   \
+    } while (0)
+
+typedef struct
+{
+    const char* file_path;
+    lv_gba_view_mode_t mode;
+} gba_emu_param_t;
+
+static void show_usage(const char* progname, int exitcode)
+{
+    printf("\nUsage: %s"
+           " -f <string> -m <decimal-value>\n",
+        progname);
+    printf("\nWhere:\n");
+    printf("  -f <string> rom file path.\n");
+    printf("  -m <decimal-value> view mode: "
+           "0: normal; 1: canvas only; 2: virtual keypad.\n");
+
+    exit(exitcode);
+}
+
+static void parse_commandline(int argc, char* const* argv, gba_emu_param_t* param)
+{
+    int ch;
+
+    if (argc < 2) {
+        show_usage(argv[0], EXIT_FAILURE);
+    }
+
+    memset(param, 0, sizeof(gba_emu_param_t));
+    param->mode = LV_GBA_VIEW_MODE_VIRTUAL_KEYPAD;
+
+    while ((ch = getopt(argc, argv, "f:m:")) != -1) {
+        switch (ch) {
+        case 'f':
+            param->file_path = optarg;
+            break;
+
+        case 'm':
+            OPTARG_TO_VALUE(param->mode, lv_gba_view_mode_t, 10);
+            break;
+
+        case '?':
+            printf(GBA_EMU_PREFIX ": Unknown option: %c\n", optopt);
+            show_usage(argv[0], EXIT_FAILURE);
+            break;
+        }
+    }
+}
 
 static void log_print_cb(lv_log_level_t level, const char* str)
 {
@@ -34,12 +95,8 @@ static void log_print_cb(lv_log_level_t level, const char* str)
 
 int main(int argc, const char* argv[])
 {
-    if (argc < 2) {
-        printf("Please input rom file path.\neg: %s xxx.gba\n", argv[0]);
-        return -1;
-    }
-
-    const char* rom_file_path = argv[1];
+    gba_emu_param_t param;
+    parse_commandline(argc, (char* const*)argv, &param);
 
 #if LV_USE_LOG
     lv_log_register_print_cb(log_print_cb);
@@ -52,12 +109,15 @@ int main(int argc, const char* argv[])
         return -1;
     }
 
-    lv_obj_t* gba_emu = lv_gba_emu_create(lv_scr_act(), rom_file_path);
+    lv_obj_t* gba_emu = lv_gba_emu_create(lv_scr_act(), param.file_path, param.mode);
 
-    if (gba_emu) {
-        gba_port_init(gba_emu);
-        lv_obj_center(gba_emu);
+    if (!gba_emu) {
+        LV_LOG_USER("create gba emu failed");
+        return -1;
     }
+
+    gba_port_init(gba_emu);
+    lv_obj_center(gba_emu);
 
     while (true) {
         uint32_t sleep_ms = lv_timer_handler();
