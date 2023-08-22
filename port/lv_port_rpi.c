@@ -37,6 +37,7 @@
  **********************/
 
 typedef struct {
+    pthread_t tid;
     sem_t flush_sem;
     sem_t wait_sem;
     st7789_t disp;
@@ -45,6 +46,8 @@ typedef struct {
     const uint16_t* bitmap;
     int16_t w;
     int16_t h;
+    uint16_t draw_buf1[HOR_RES * VER_RES];
+    uint16_t draw_buf2[HOR_RES * VER_RES];
 } disp_refr_ctx_t;
 
 /**********************
@@ -95,11 +98,7 @@ int lv_port_init(void)
 
     sem_init(&ctx.flush_sem, 0, 0);
     sem_init(&ctx.wait_sem, 0, 0);
-    static pthread_t thread_id;
-    pthread_create(&thread_id, NULL, disp_thread, &ctx);
-
-    static uint16_t draw_buf1[HOR_RES * VER_RES];
-    static uint16_t draw_buf2[HOR_RES * VER_RES];
+    pthread_create(&ctx.tid, NULL, disp_thread, &ctx);
 
     lv_disp_t* disp = lv_disp_create(HOR_RES, VER_RES);
     lv_disp_set_user_data(disp, &ctx);
@@ -107,9 +106,9 @@ int lv_port_init(void)
     disp->wait_cb = disp_wait_cb;
     lv_disp_set_draw_buffers(
         disp,
-        draw_buf1,
-        draw_buf2,
-        sizeof(draw_buf1),
+        ctx.draw_buf1,
+        ctx.draw_buf2,
+        sizeof(ctx.draw_buf1),
         LV_DISP_RENDER_MODE_PARTIAL);
 
     return 0;
@@ -154,14 +153,13 @@ static void disp_flush(disp_refr_ctx_t* ctx, int16_t x, int16_t y, const uint16_
     sem_post(&ctx->flush_sem);
 }
 
-
 static void disp_flush_cb(lv_disp_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
     lv_coord_t w = (area->x2 - area->x1 + 1);
     lv_coord_t h = (area->y2 - area->y1 + 1);
 
     disp_refr_ctx_t* ctx = lv_disp_get_user_data(disp);
-    disp_flush(ctx, area->x1, area->y1, (uint16_t*)color_p, w, h);    
+    disp_flush(ctx, area->x1, area->y1, (uint16_t*)color_p, w, h);
 }
 
 static void disp_wait_cb(lv_disp_t* disp)
