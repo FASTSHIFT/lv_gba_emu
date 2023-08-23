@@ -23,9 +23,9 @@ typedef struct {
     pthread_t tid;
     sem_t flush_sem;
     sem_t wait_sem;
-    snd_pcm_t* pcm_handle;
-    audio_fifo_t audio_fifo;
-    static int16_t audio_buffer[AUDIO_FIFO_LEN];
+    int sample_rate;
+    audio_fifo_t fifo;
+    int16_t buffer[AUDIO_FIFO_LEN];
 } audio_ctx_t;
 
 static const int key_map[] = {
@@ -87,10 +87,26 @@ static void* audio_thread(void* arg)
 {
     audio_ctx_t* ctx = arg;
     int16_t buffer[AUDIO_FIFO_LEN];
+    audio_fifo_t* fifo = &ctx->fifo;
+    
+    /* Initialize ALSA PCM handle */
+    snd_pcm_t* pcm_handle;
+    int ret = snd_pcm_open(&pcm_handle, PCM_DEVICE, SND_PCM_STREAM_PLAYBACK, 0);
+    if (ret < 0) {
+        LV_LOG_ERROR("Failed to open PCM device: %s", PCM_DEVICE);
+        return NULL;
+    }
+
+    LV_LOG_USER("pcm_handle = %p, sample_rate = %d", pcm_handle, ctx->sample_rate);
+
+    /* Set hardware parameters based on your audio file's parameters */
+    snd_pcm_set_params(pcm_handle, SND_PCM_FORMAT_S16_LE, SND_PCM_ACCESS_RW_INTERLEAVED, 1, ctx->sample_rate, 1, 1024);
+    
     while (1) {
         sem_wait(&ctx->flush_sem);
 
         int avaliable = audio_fifo_avaliable(fifo);
+        LV_LOG_USER("avaliable = %d", avaliable);
 
         for (int i = 0; i < avaliable; i++) {
             buffer[i] = audio_fifo_read(fifo);
@@ -133,7 +149,8 @@ static size_t gba_audio_output_cb(void* user_data, const int16_t* data, size_t f
     bool wr_ok;
     int len = frames * 2;
 
-    sem_wait(&ctx->wait_sem);
+    //sem_wait(&ctx->wait_sem);
+    LV_LOG_USER("frames = %d", frames);
 
     for (int i = 0; i < len; i++) {
         wr_ok = audio_fifo_write(&ctx->fifo, data[i]);
@@ -143,7 +160,7 @@ static size_t gba_audio_output_cb(void* user_data, const int16_t* data, size_t f
         LV_LOG_INFO("audio over run");
     }
 
-    sem_post(&ctx->flush_sem);
+    //sem_post(&ctx->flush_sem);
 
     return frames;
 }
@@ -151,17 +168,11 @@ static size_t gba_audio_output_cb(void* user_data, const int16_t* data, size_t f
 static int gba_audio_init(lv_obj_t* gba_emu)
 {
     static audio_ctx_t ctx;
-    audio_fifo_init(&ctx.audio_fifo, ctx.audio_buffer, AUDIO_FIFO_LEN);
-
-    /* Initialize ALSA PCM handle */
-    int ret = snd_pcm_open(&ctx.pcm_handle, PCM_DEVICE, SND_PCM_STREAM_PLAYBACK, 0);
-    if (ret < 0) {
-        LV_LOG_ERROR("Failed to open PCM device: %s", PCM_DEVICE);
-        return ret;
-    }
-
-    /* Set hardware parameters based on your audio file's parameters */
-    snd_pcm_set_params(ctx.pcm_handle, SND_PCM_FORMAT_S16_LE, SND_PCM_ACCESS_RW_INTERLEAVED, 1, 48000, 1, 125000);
+    audio_fifo_init(&ctx.fifo, ctx.buffer, AUDIO_FIFO_LEN);
+    
+    int sample_rate = lv_gba_emu_get_audio_sample_rate(gba_emu);
+    LV_ASSERT(sample_rate > 0);
+    ctx.sample_rate = sample_rate;
 
     sem_init(&ctx.flush_sem, 0, 0);
     sem_init(&ctx.wait_sem, 0, 0);

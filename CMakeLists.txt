@@ -85,7 +85,7 @@ file(GLOB PORT_SOURCES "port/*.c")
 
 if (LV_USE_RPI)
 file(GLOB PORT_RPI_SOURCES "port/rpi/*.c")
-set(RPI_LINK_LIBS wiringPi pthread)
+set(RPI_LINK_LIBS wiringPi pthread asound)
 endif ()
 
 ## gba emu
