@@ -35,6 +35,8 @@ uint32_t lv_port_tick_get(void);
 
 void gba_port_init(lv_obj_t* gba_emu);
 
+int gba_audio_init(lv_obj_t* gba_emu);
+
 /**********************
  *      MACROS
  **********************/

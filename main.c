@@ -117,6 +117,11 @@ int main(int argc, const char* argv[])
     }
 
     gba_port_init(gba_emu);
+
+    if (gba_audio_init(gba_emu) < 0) {
+        LV_LOG_WARN("audio init failed");
+    }
+
     lv_obj_center(gba_emu);
 
     while (true) {
