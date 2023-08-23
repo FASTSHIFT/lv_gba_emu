@@ -43,6 +43,7 @@ typedef struct
 {
     const char* file_path;
     lv_gba_view_mode_t mode;
+    int volume;
 } gba_emu_param_t;
 
 static void show_usage(const char* progname, int exitcode)
@@ -54,6 +55,8 @@ static void show_usage(const char* progname, int exitcode)
     printf("  -f <string> rom file path.\n");
     printf("  -m <decimal-value> view mode: "
            "0: normal; 1: canvas only; 2: virtual keypad.\n");
+    printf("  -v <decimal-value> set volume: 0 ~ 100.\n");
+    printf("  -h help.\n");
 
     exit(exitcode);
 }
@@ -68,8 +71,9 @@ static void parse_commandline(int argc, char* const* argv, gba_emu_param_t* para
 
     memset(param, 0, sizeof(gba_emu_param_t));
     param->mode = LV_GBA_VIEW_MODE_VIRTUAL_KEYPAD;
+    param->volume = 100;
 
-    while ((ch = getopt(argc, argv, "f:m:")) != -1) {
+    while ((ch = getopt(argc, argv, "f:m:v:h")) != -1) {
         switch (ch) {
         case 'f':
             param->file_path = optarg;
@@ -79,8 +83,13 @@ static void parse_commandline(int argc, char* const* argv, gba_emu_param_t* para
             OPTARG_TO_VALUE(param->mode, lv_gba_view_mode_t, 10);
             break;
 
+        case 'v':
+            OPTARG_TO_VALUE(param->volume, int, 10);
+            break;
+
         case '?':
             printf(GBA_EMU_PREFIX ": Unknown option: %c\n", optopt);
+        case 'h':
             show_usage(argv[0], EXIT_FAILURE);
             break;
         }
@@ -118,8 +127,11 @@ int main(int argc, const char* argv[])
 
     gba_port_init(gba_emu);
 
-    if (gba_audio_init(gba_emu) < 0) {
-        LV_LOG_WARN("audio init failed");
+    LV_LOG_USER("volume = %d", param.volume);
+    if (param.volume > 0) {
+        if (gba_audio_init(gba_emu) < 0) {
+            LV_LOG_WARN("audio init failed");
+        }
     }
 
     lv_obj_center(gba_emu);
