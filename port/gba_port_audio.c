@@ -230,13 +230,18 @@ static void* audio_thread(void* arg)
             int bytes_per_sample = 2; /* 16 bit */
             int buffer_size = avaliable * sizeof(int16_t);
             int frames = buffer_size / (channels * bytes_per_sample);
-
-            snd_pcm_sframes_t frames_written = snd_pcm_writei(ctx->pcm_handle, buffer, frames);
+            snd_pcm_sframes_t frames_written;
+        retry:
+            frames_written = snd_pcm_writei(ctx->pcm_handle, buffer, frames);
             if (frames_written < 0) {
                 LV_LOG_ERROR("frames = %d, Write error: %s", frames, snd_strerror(frames_written));
 
                 /* reset pcm */
-                pcm_init(ctx);
+                if (pcm_init(ctx) < 0) {
+                    LV_LOG_ERROR("pcm reset failed");
+                    return NULL;
+                }
+                goto retry;
             } else if (frames_written != frames) {
                 LV_LOG_WARN("Short write, expected %d frames but wrote %ld", avaliable, frames_written);
             }
