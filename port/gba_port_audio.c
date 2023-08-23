@@ -238,6 +238,7 @@ static int audio_init(audio_ctx_t* ctx, int sample_rate)
     pthread_t tid;
     ret = pthread_create(&tid, NULL, audio_thread, ctx);
     LV_ASSERT_MSG(ret == 0, "pthread_create failed");
+    return ret;
 }
 
 #endif
