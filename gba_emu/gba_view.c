@@ -253,6 +253,13 @@ lv_obj_t* gba_view_get_root(gba_context_t* ctx)
     return ctx->view->root;
 }
 
+void gba_view_invalidate_frame(gba_context_t* ctx)
+{
+    LV_ASSERT_NULL(ctx);
+    LV_ASSERT_NULL(ctx->view);
+    lv_obj_invalidate(ctx->view->screen.canvas);
+}
+
 void gba_view_draw_frame(gba_context_t* ctx, const uint16_t* buf, lv_coord_t width, lv_coord_t height)
 {
     lv_obj_t* canvas = ctx->view->screen.canvas;
@@ -276,5 +283,10 @@ void gba_view_draw_frame(gba_context_t* ctx, const uint16_t* buf, lv_coord_t wid
         src += (ctx->av_info.fb_stride - width);
     }
 #endif
-    lv_obj_invalidate(canvas);
+
+#if THREADED_RENDERER
+    ctx->invalidate = true;
+#else
+    gba_view_invalidate_frame(ctx);
+#endif
 }

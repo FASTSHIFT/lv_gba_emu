@@ -160,4 +160,10 @@ bool gba_retro_load_game(gba_context_t* ctx, const char* path)
 void gba_retro_run(gba_context_t* ctx)
 {
     retro_run();
+#if THREADED_RENDERER
+    if (ctx->invalidate) {
+        gba_view_invalidate_frame(ctx);
+        ctx->invalidate = false;
+    }
+#endif
 }

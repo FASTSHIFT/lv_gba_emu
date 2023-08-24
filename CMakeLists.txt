@@ -30,7 +30,7 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS})
 set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -flto)
 
 # Link libs
-set(RPI_LINK_LIBS wiringPi pthread asound)
+set(RPI_LINK_LIBS wiringPi asound)
 
 else()
 message(STATUS "Platform: UNIX - SDL2")
@@ -64,12 +64,13 @@ add_definitions(
 add_definitions(
         -DDEBUG=0
         -DFRONTEND_SUPPORTS_RGB565=1
-        -DTILED_RENDERING=0
+        -DTILED_RENDERING=1
         -DSTATIC_LINKING=0
         -DUSE_TWEAKS=0
-        -DUSE_THREADED_RENDERER=0
+        -DTHREADED_RENDERER=0
         -DUSE_FRAME_SKIP=1
         -DHAVE_NEON=0
+        -Dretro_sleep=lv_port_sleep
 
         -DNDEBUG
         -D__LIBRETRO__
@@ -105,6 +106,7 @@ file(GLOB VBA_NEXT_SOURCE
         ${VBA_NEXT_SOURCE_DIR}/src/*.c
         ${VBA_NEXT_SOURCE_DIR}/src/*.cpp
         ${VBA_NEXT_SOURCE_DIR}/libretro/libretro.cpp
+        ${VBA_NEXT_SOURCE_DIR}/libretro-common/rthreads/*.c
         ${VBA_NEXT_SOURCE_DIR}/libretro-common/compat/*.c
         ${VBA_NEXT_SOURCE_DIR}/libretro-common/encodings/*.c
         ${VBA_NEXT_SOURCE_DIR}/libretro-common/file/*.c
@@ -133,6 +135,7 @@ add_executable(gba_emu main.c ${SOURCES} ${INCLUDES})
 target_link_libraries(
         gba_emu PRIVATE
         lvgl
+        pthread
         # lvgl::examples
         # lvgl::demos
         ${RPI_LINK_LIBS}

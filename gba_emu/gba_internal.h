@@ -61,6 +61,7 @@ typedef struct {
 typedef struct gba_context_s {
     gba_view_t* view;
     lv_timer_t* timer;
+    bool invalidate;
 
     struct {
         lv_coord_t fb_width;
@@ -85,6 +86,7 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par, int mode);
 void gba_view_deinit(gba_context_t* ctx);
 lv_obj_t* gba_view_get_root(gba_context_t* ctx);
 void gba_view_draw_frame(gba_context_t* ctx, const uint16_t* buf, lv_coord_t width, lv_coord_t height);
+void gba_view_invalidate_frame(gba_context_t* ctx);
 
 #ifdef __cplusplus
 }
