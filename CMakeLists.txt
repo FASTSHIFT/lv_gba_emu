@@ -66,7 +66,7 @@ add_definitions(
         -DFRONTEND_SUPPORTS_RGB565=1
         -DTILED_RENDERING=1
         -DSTATIC_LINKING=0
-        -DUSE_TWEAKS=0
+        -DUSE_TWEAKS=1
         -DTHREADED_RENDERER=0
         -DUSE_FRAME_SKIP=1
         -DHAVE_NEON=0
