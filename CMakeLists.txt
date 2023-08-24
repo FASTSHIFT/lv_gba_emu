@@ -22,6 +22,16 @@ add_definitions(
         -DLV_USE_RPI=1
         -DLV_USE_SDL=0
 )
+
+# FLAGS
+set(RPI_BUILD_FLAGS "-mfpu=vfp -Ofast -flto")
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${RPI_BUILD_FLAGS})
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS})
+set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -flto)
+
+# Link libs
+set(RPI_LINK_LIBS wiringPi pthread asound)
+
 else()
 message(STATUS "Platform: UNIX - SDL2")
 add_definitions(
@@ -85,7 +95,6 @@ file(GLOB PORT_SOURCES "port/*.c")
 
 if (LV_USE_RPI)
 file(GLOB PORT_RPI_SOURCES "port/rpi/*.c")
-set(RPI_LINK_LIBS wiringPi pthread asound)
 endif ()
 
 ## gba emu
