@@ -177,13 +177,41 @@ static int audio_init(audio_ctx_t* ctx)
 
 #else
 
-static int pcm_init(audio_ctx_t* ctx)
+static void* audio_thread(void* arg)
 {
-    if (ctx->pcm_handle != NULL) {
-        snd_pcm_close(ctx->pcm_handle);
-        ctx->pcm_handle = NULL;
-    }
+    audio_ctx_t* ctx = arg;
+    int16_t buffer[AUDIO_FIFO_LEN];
+    audio_fifo_t* fifo = &ctx->fifo;
 
+    while (1) {
+        int avaliable = audio_fifo_avaliable(fifo);
+
+        if (avaliable > 0) {
+            for (int i = 0; i < avaliable; i++) {
+                buffer[i] = audio_fifo_read(fifo);
+            }
+
+            int channels = 2;
+            int bytes_per_sample = 2; /* 16 bit */
+            int buffer_size = avaliable * sizeof(int16_t);
+            int frames = buffer_size / (channels * bytes_per_sample);
+            snd_pcm_sframes_t frames_written;
+            frames_written = snd_pcm_writei(ctx->pcm_handle, buffer, frames);
+            if (frames_written < 0) {
+                LV_LOG_ERROR("frames = %d, Write error: %s", frames, snd_strerror(frames_written));
+                snd_pcm_recover(ctx->pcm_handle, frames_written, 0);
+            } else if (frames_written != frames) {
+                LV_LOG_WARN("Short write, expected %d frames but wrote %ld", avaliable, frames_written);
+            }
+        }
+
+        usleep(100);
+    }
+    return NULL;
+}
+
+static int audio_init(audio_ctx_t* ctx)
+{
     int ret;
     /* Initialize ALSA PCM handle */
     ret = snd_pcm_open(&ctx->pcm_handle, PCM_DEVICE, SND_PCM_STREAM_PLAYBACK, 0);
@@ -207,55 +235,6 @@ static int pcm_init(audio_ctx_t* ctx)
         LV_LOG_ERROR("Unable to set PCM parameters: %s", snd_strerror(ret));
         snd_pcm_close(ctx->pcm_handle);
         ctx->pcm_handle = NULL;
-    }
-
-    return ret;
-}
-
-static void* audio_thread(void* arg)
-{
-    audio_ctx_t* ctx = arg;
-    int16_t buffer[AUDIO_FIFO_LEN];
-    audio_fifo_t* fifo = &ctx->fifo;
-
-    while (1) {
-        int avaliable = audio_fifo_avaliable(fifo);
-
-        if (avaliable > 0) {
-            for (int i = 0; i < avaliable; i++) {
-                buffer[i] = audio_fifo_read(fifo);
-            }
-
-            int channels = 2;
-            int bytes_per_sample = 2; /* 16 bit */
-            int buffer_size = avaliable * sizeof(int16_t);
-            int frames = buffer_size / (channels * bytes_per_sample);
-            snd_pcm_sframes_t frames_written;
-        retry:
-            frames_written = snd_pcm_writei(ctx->pcm_handle, buffer, frames);
-            if (frames_written < 0) {
-                LV_LOG_ERROR("frames = %d, Write error: %s", frames, snd_strerror(frames_written));
-
-                /* reset pcm */
-                if (pcm_init(ctx) < 0) {
-                    LV_LOG_ERROR("pcm reset failed");
-                    return NULL;
-                }
-                goto retry;
-            } else if (frames_written != frames) {
-                LV_LOG_WARN("Short write, expected %d frames but wrote %ld", avaliable, frames_written);
-            }
-        }
-
-        usleep(100);
-    }
-    return NULL;
-}
-
-static int audio_init(audio_ctx_t* ctx)
-{
-    int ret = pcm_init(ctx);
-    if (ret < 0) {
         return ret;
     }
 
