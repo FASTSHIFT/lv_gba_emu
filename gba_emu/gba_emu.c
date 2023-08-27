@@ -71,7 +71,7 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path, lv_gba_vie
     LV_ASSERT_MALLOC(gba_ctx);
     gba_context_init(gba_ctx);
 
-    char real_path[128];
+    char real_path[512];
     lv_snprintf(real_path, sizeof(real_path), "/%s", rom_file_path);
 
     if (!gba_emu_change_rom_size(real_path)) {
