@@ -21,6 +21,7 @@ message(STATUS "Platform: Raspberry Pi - GamePi20")
 add_definitions(
         -DLV_USE_RPI=1
         -DLV_USE_SDL=0
+        -DTHREADED_RENDERER=1
 )
 
 # FLAGS
@@ -38,6 +39,7 @@ add_definitions(
         -DLV_SCREEN_HOR_RES=320
         -DLV_SCREEN_VER_RES=480
         -DLV_USE_SDL=1
+        -DTHREADED_RENDERER=0
 )
 
 add_definitions(-DUSE_SDL=1 -DHAVE_UNISTD_H=1 -DHAVE_FCNTL_H=1)
@@ -67,7 +69,6 @@ add_definitions(
         -DTILED_RENDERING=1
         -DSTATIC_LINKING=0
         -DUSE_TWEAKS=1
-        -DTHREADED_RENDERER=0
         -DUSE_FRAME_SKIP=1
         -DHAVE_NEON=0
         -Dretro_sleep=lv_port_sleep
