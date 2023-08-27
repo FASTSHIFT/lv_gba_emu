@@ -54,7 +54,7 @@ static void show_usage(const char* progname, int exitcode)
     printf("\nWhere:\n");
     printf("  -f <string> rom file path.\n");
     printf("  -m <decimal-value> view mode: "
-           "0: normal; 1: canvas only; 2: virtual keypad.\n");
+           "0: simple; 1: virtual keypad.\n");
     printf("  -v <decimal-value> set volume: 0 ~ 100.\n");
     printf("  -h help.\n");
 
@@ -70,7 +70,7 @@ static void parse_commandline(int argc, char* const* argv, gba_emu_param_t* para
     }
 
     memset(param, 0, sizeof(gba_emu_param_t));
-    param->mode = LV_GBA_VIEW_MODE_VIRTUAL_KEYPAD;
+    param->mode = LV_VER_RES < 400 ? LV_GBA_VIEW_MODE_SIMPLE : LV_GBA_VIEW_MODE_VIRTUAL_KEYPAD;
     param->volume = 100;
 
     while ((ch = getopt(argc, argv, "f:m:v:h")) != -1) {
@@ -104,9 +104,6 @@ static void log_print_cb(lv_log_level_t level, const char* str)
 
 int main(int argc, const char* argv[])
 {
-    gba_emu_param_t param;
-    parse_commandline(argc, (char* const*)argv, &param);
-
 #if LV_USE_LOG
     lv_log_register_print_cb(log_print_cb);
 #endif
@@ -117,6 +114,9 @@ int main(int argc, const char* argv[])
         LV_LOG_USER("hal init failed");
         return -1;
     }
+
+    gba_emu_param_t param;
+    parse_commandline(argc, (char* const*)argv, &param);
 
     lv_obj_t* gba_emu = lv_gba_emu_create(lv_scr_act(), param.file_path, param.mode);
 

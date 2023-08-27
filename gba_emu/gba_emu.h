@@ -30,8 +30,7 @@ extern "C" {
 #endif
 
 typedef enum {
-    LV_GBA_VIEW_MODE_NORMAL,
-    LV_GBA_VIEW_MODE_CANVAS_ONLY,
+    LV_GBA_VIEW_MODE_SIMPLE,
     LV_GBA_VIEW_MODE_VIRTUAL_KEYPAD,
 } lv_gba_view_mode_t;
 

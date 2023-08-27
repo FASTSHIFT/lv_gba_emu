@@ -214,6 +214,11 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par, int mode)
     lv_obj_t* root = lv_obj_create(par);
     {
         view->root = root;
+
+        if (mode == LV_GBA_VIEW_MODE_SIMPLE) {
+            lv_obj_remove_style_all(root);
+        }
+
         lv_obj_clear_flag(root, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_set_user_data(root, ctx);
         lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
@@ -223,7 +228,7 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par, int mode)
 
     bool retval = screen_create(ctx);
 
-    if (mode != LV_GBA_VIEW_MODE_CANVAS_ONLY) {
+    if (mode != LV_GBA_VIEW_MODE_SIMPLE) {
         lv_obj_t* canvas = view->screen.canvas;
         lv_obj_set_style_outline_color(canvas, lv_theme_get_color_primary(canvas), 0);
         lv_obj_set_style_outline_width(canvas, 5, 0);
