@@ -49,7 +49,7 @@ typedef struct
 static void show_usage(const char* progname, int exitcode)
 {
     printf("\nUsage: %s"
-           " -f <string> -m <decimal-value>\n",
+           " -f <string> -m <decimal-value> -m <decimal-value> -h\n",
         progname);
     printf("\nWhere:\n");
     printf("  -f <string> rom file path.\n");
