@@ -29,6 +29,15 @@
 #define DISP_DC_PIN 25
 #define DISP_BLK_PIN 24
 
+#define KEY_UP_PIN 12
+#define KEY_DOWN_PIN 20
+#define KEY_LEFT_PIN 21
+#define KEY_RIGHT_PIN 13
+#define KEY_A_PIN 23
+#define KEY_B_PIN 4
+#define KEY_SELECT_PIN 16
+#define KEY_START_PIN 26
+
 #define HOR_RES 320
 #define VER_RES 240
 
@@ -57,6 +66,7 @@ typedef struct {
 static void disp_flush_cb(lv_disp_t* disp, const lv_area_t* area, lv_color_t* color_p);
 static void disp_wait_cb(lv_disp_t* disp);
 static void* disp_thread(void* arg);
+static void keypad_read(lv_indev_drv_t* indev_drv, lv_indev_data_t* data);
 
 /**********************
  *  STATIC VARIABLES
@@ -71,13 +81,28 @@ static void* disp_thread(void* arg);
  **********************/
 int lv_port_init(void)
 {
-    lv_group_set_default(lv_group_create());
-
     int ret = wiringPiSetupGpio();
     if (ret < 0) {
         printf("wiringPiSetupGpio failed: %d\n", ret);
         return ret;
     }
+
+    /* Init keys */
+    int keys[] = { KEY_UP_PIN, KEY_DOWN_PIN, KEY_LEFT_PIN, KEY_RIGHT_PIN, KEY_A_PIN, KEY_B_PIN, KEY_SELECT_PIN, KEY_START_PIN };
+    for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
+        pinMode(keys[i], INPUT);
+        pullUpDnControl(keys[i], PUD_UP);
+    }
+
+    /* Register indev */
+    static lv_indev_drv_t indev_drv;
+    lv_indev_drv_init(&indev_drv);
+    indev_drv.type = LV_INDEV_TYPE_KEYPAD;
+    indev_drv.read_cb = keypad_read;
+    lv_indev_t* indev = lv_indev_drv_register(&indev_drv);
+
+    lv_group_set_default(lv_group_create());
+    lv_indev_set_group(indev, lv_group_get_default());
 
     pinMode(DISP_BLK_PIN, OUTPUT);
     digitalWrite(DISP_BLK_PIN, 1);
@@ -151,6 +176,37 @@ static void disp_flush(disp_refr_ctx_t* ctx, int16_t x, int16_t y, const uint16_
     ctx->w = w;
     ctx->h = h;
     sem_post(&ctx->flush_sem);
+}
+
+static void keypad_read(lv_indev_drv_t* indev_drv, lv_indev_data_t* data)
+{
+    static uint32_t last_key = 0;
+    uint32_t act_key = 0;
+
+    if (digitalRead(KEY_UP_PIN) == LOW)
+        act_key = LV_KEY_UP;
+    else if (digitalRead(KEY_DOWN_PIN) == LOW)
+        act_key = LV_KEY_DOWN;
+    else if (digitalRead(KEY_LEFT_PIN) == LOW)
+        act_key = LV_KEY_LEFT;
+    else if (digitalRead(KEY_RIGHT_PIN) == LOW)
+        act_key = LV_KEY_RIGHT;
+    else if (digitalRead(KEY_A_PIN) == LOW)
+        act_key = LV_KEY_ENTER;
+    else if (digitalRead(KEY_B_PIN) == LOW)
+        act_key = LV_KEY_ESC;
+    else if (digitalRead(KEY_SELECT_PIN) == LOW)
+        act_key = LV_KEY_NEXT;
+    else if (digitalRead(KEY_START_PIN) == LOW)
+        act_key = LV_KEY_PREV;
+
+    if (act_key != 0) {
+        data->state = LV_INDEV_STATE_PRESSED;
+        last_key = act_key;
+    } else {
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
+    data->key = last_key;
 }
 
 static void disp_flush_cb(lv_disp_t* disp, const lv_area_t* area, lv_color_t* color_p)

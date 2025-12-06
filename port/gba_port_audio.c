@@ -51,6 +51,8 @@ typedef struct {
     int16_t buffer[AUDIO_FIFO_LEN];
 #if LV_USE_SDL == 0
     snd_pcm_t* pcm_handle;
+    pthread_t thread_id;
+    volatile bool running;
 #endif
 } audio_ctx_t;
 
@@ -60,11 +62,14 @@ typedef struct {
 
 static size_t gba_audio_output_cb(void* user_data, const int16_t* data, size_t frames);
 static int audio_init(audio_ctx_t* ctx);
+static void audio_deinit(audio_ctx_t* ctx);
 static void audio_fifo_init(audio_fifo_t* fifo, int16_t* buffer, int size);
 
 /**********************
  *  STATIC VARIABLES
  **********************/
+
+static audio_ctx_t g_audio_ctx;
 
 /**********************
  *      MACROS
@@ -77,21 +82,26 @@ static void audio_fifo_init(audio_fifo_t* fifo, int16_t* buffer, int size);
 int gba_audio_init(lv_obj_t* gba_emu)
 {
     int ret;
-    static audio_ctx_t ctx;
-    audio_fifo_init(&ctx.fifo, ctx.buffer, AUDIO_FIFO_LEN);
+    audio_fifo_init(&g_audio_ctx.fifo, g_audio_ctx.buffer, AUDIO_FIFO_LEN);
 
     int sample_rate = lv_gba_emu_get_audio_sample_rate(gba_emu);
     LV_ASSERT(sample_rate > 0);
-    ctx.sample_rate = sample_rate;
+    g_audio_ctx.sample_rate = sample_rate;
 
-    ret = audio_init(&ctx);
+    ret = audio_init(&g_audio_ctx);
     if (ret < 0) {
         return ret;
     }
 
-    lv_gba_emu_set_audio_output_cb(gba_emu, gba_audio_output_cb, &ctx);
+    lv_gba_emu_set_audio_output_cb(gba_emu, gba_audio_output_cb, &g_audio_ctx);
 
     return 0;
+}
+
+void gba_audio_deinit(lv_obj_t* gba_emu)
+{
+    LV_UNUSED(gba_emu);
+    audio_deinit(&g_audio_ctx);
 }
 
 /**********************
@@ -175,6 +185,11 @@ static int audio_init(audio_ctx_t* ctx)
     return ret;
 }
 
+static void audio_deinit(audio_ctx_t* ctx)
+{
+    SDL_CloseAudio();
+}
+
 #else
 
 static void* audio_thread(void* arg)
@@ -183,7 +198,7 @@ static void* audio_thread(void* arg)
     int16_t buffer[AUDIO_FIFO_LEN];
     audio_fifo_t* fifo = &ctx->fifo;
 
-    while (1) {
+    while (ctx->running) {
         int avaliable = audio_fifo_avaliable(fifo);
 
         if (avaliable > 0) {
@@ -238,10 +253,23 @@ static int audio_init(audio_ctx_t* ctx)
         return ret;
     }
 
-    pthread_t tid;
-    ret = pthread_create(&tid, NULL, audio_thread, ctx);
+    ctx->running = true;
+    ret = pthread_create(&ctx->thread_id, NULL, audio_thread, ctx);
     LV_ASSERT_MSG(ret == 0, "pthread_create failed");
     return ret;
+}
+
+static void audio_deinit(audio_ctx_t* ctx)
+{
+    if (ctx->running) {
+        ctx->running = false;
+        pthread_join(ctx->thread_id, NULL);
+    }
+
+    if (ctx->pcm_handle) {
+        snd_pcm_close(ctx->pcm_handle);
+        ctx->pcm_handle = NULL;
+    }
 }
 
 #endif

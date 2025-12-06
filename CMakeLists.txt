@@ -6,125 +6,107 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
 # Platform config
+option(ENABLE_DEBUG "Enable debug build" OFF)
 
-set(ENABLE_ASAN 0)
-# set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_BUILD_TYPE "Release")
+if(ENABLE_DEBUG)
+  message(STATUS "Debug build enabled")
+  set(ENABLE_ASAN 1)
+  set(CMAKE_BUILD_TYPE "Debug")
+  add_definitions(-DDEBUG=1)
+  add_definitions(-DLV_USE_BUILTIN_MALLOC=0)
+else()
+  message(STATUS "Release build enabled")
+  add_definitions(-DDEBUG=0)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
 
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+# Common Platform
+if(LV_USE_RPI)
+  message(STATUS "Platform: Raspberry Pi - GamePi20")
+  add_definitions(-DLV_USE_RPI=1 -DLV_USE_SDL=0 -DTHREADED_RENDERER=1)
 
-## Common
-# Platform
-if (LV_USE_RPI)
-message(STATUS "Platform: Raspberry Pi - GamePi20")
-add_definitions(
-        -DLV_USE_RPI=1
-        -DLV_USE_SDL=0
-        -DTHREADED_RENDERER=1
-)
+  # FLAGS
+  set(RPI_BUILD_FLAGS "-mfpu=vfp -Ofast -flto")
+  set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${RPI_BUILD_FLAGS})
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS})
+  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -flto)
 
-# FLAGS
-set(RPI_BUILD_FLAGS "-mfpu=vfp -Ofast -flto")
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${RPI_BUILD_FLAGS})
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS})
-set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -flto)
-
-# Link libs
-set(RPI_LINK_LIBS wiringPi asound)
+  # Link libs
+  set(RPI_LINK_LIBS wiringPi asound)
 
 else()
-message(STATUS "Platform: UNIX - SDL2")
-add_definitions(
-        -DLV_SCREEN_HOR_RES=320
-        -DLV_SCREEN_VER_RES=480
-        -DLV_USE_SDL=1
-        -DTHREADED_RENDERER=0
-)
+  message(STATUS "Platform: UNIX - SDL2")
+  add_definitions(-DLV_SCREEN_HOR_RES=320 -DLV_SCREEN_VER_RES=480
+                  -DLV_USE_SDL=1 -DTHREADED_RENDERER=0)
 
-add_definitions(-DUSE_SDL=1 -DHAVE_UNISTD_H=1 -DHAVE_FCNTL_H=1)
-find_package(SDL2 REQUIRED SDL2)
-include_directories(
-        ${SDL2_INCLUDE_DIRS}
-        ${SDL2_INCLUDE_DIRS}/../
-)
+  add_definitions(-DUSE_SDL=1 -DHAVE_UNISTD_H=1 -DHAVE_FCNTL_H=1)
+  find_package(SDL2 REQUIRED SDL2)
+  include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS}/../)
 
-# Address Sanitizer
-if (ENABLE_ASAN)
-        set(ASAN_FLAGS "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer")
-        add_definitions(${ASAN_FLAGS})
-        set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${ASAN_FLAGS})
-endif()
+  # Address Sanitizer
+  if(ENABLE_ASAN)
+    message(STATUS "Address Sanitizer enabled")
+    set(ASAN_FLAGS
+        "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer")
+    add_definitions(${ASAN_FLAGS})
+    set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${ASAN_FLAGS})
+  endif()
 endif()
 
 # LVGL config
-add_definitions(
-        -DLV_USE_DEV_VERSION=1
-)
+add_definitions(-DLV_USE_DEV_VERSION=1)
 
 # vba-next config
 add_definitions(
-        -DDEBUG=0
-        -DFRONTEND_SUPPORTS_RGB565=1
-        -DTILED_RENDERING=1
-        -DSTATIC_LINKING=0
-        -DUSE_TWEAKS=1
-        -DUSE_FRAME_SKIP=1
-        -DHAVE_NEON=0
-        -Dretro_sleep=lv_port_sleep
-
-        -DNDEBUG
-        -D__LIBRETRO__
-        -DINLINE=inline
-        -DHAVE_STDINT_H
-        -DHAVE_INTTYPES_H
-
-        -DGBA_FRAME_SKIP="0"
-)
+  -DFRONTEND_SUPPORTS_RGB565=1
+  -DTILED_RENDERING=1
+  -DSTATIC_LINKING=0
+  -DUSE_TWEAKS=1
+  -DUSE_FRAME_SKIP=1
+  -DHAVE_NEON=0
+  -Dretro_sleep=lv_port_sleep
+  -DNDEBUG
+  -D__LIBRETRO__
+  -DINLINE=inline
+  -DHAVE_STDINT_H
+  -DHAVE_INTTYPES_H
+  -DGBA_FRAME_SKIP="0")
 
 # Include
 set(VBA_NEXT_SOURCE_DIR ${PROJECT_SOURCE_DIR}/vba-next)
 
-include_directories(
-        ${PROJECT_SOURCE_DIR}
-        ${VBA_NEXT_SOURCE_DIR}/src
-        ${VBA_NEXT_SOURCE_DIR}/libretro-common/include
-)
+include_directories(${PROJECT_SOURCE_DIR} ${VBA_NEXT_SOURCE_DIR}/src
+                    ${VBA_NEXT_SOURCE_DIR}/libretro-common/include)
 
-# Sources
-## porting
+# Sources porting
 file(GLOB PORT_SOURCES "port/*.c")
 
-if (LV_USE_RPI)
-file(GLOB PORT_RPI_SOURCES "port/rpi/*.c")
-endif ()
+if(LV_USE_RPI)
+  file(GLOB PORT_RPI_SOURCES "port/rpi/*.c")
+endif()
 
-## gba emu
+# gba emu
 file(GLOB GBA_EMU_SOURCES "gba_emu/*.c*")
 
-## vba-next
-file(GLOB VBA_NEXT_SOURCE
-        ${VBA_NEXT_SOURCE_DIR}/src/*.c
-        ${VBA_NEXT_SOURCE_DIR}/src/*.cpp
-        ${VBA_NEXT_SOURCE_DIR}/libretro/libretro.cpp
-        ${VBA_NEXT_SOURCE_DIR}/libretro-common/rthreads/rsemaphore.c
-        ${VBA_NEXT_SOURCE_DIR}/libretro-common/rthreads/rthreads.c
-        ${VBA_NEXT_SOURCE_DIR}/libretro-common/compat/*.c
-        ${VBA_NEXT_SOURCE_DIR}/libretro-common/encodings/*.c
-        ${VBA_NEXT_SOURCE_DIR}/libretro-common/file/*.c
-        ${VBA_NEXT_SOURCE_DIR}/libretro-common/streams/*.c
-        ${VBA_NEXT_SOURCE_DIR}/libretro-common/string/*.c
-        ${VBA_NEXT_SOURCE_DIR}/libretro-common/time/*.c
-)
+# vba-next
+file(
+  GLOB
+  VBA_NEXT_SOURCE
+  ${VBA_NEXT_SOURCE_DIR}/src/*.c
+  ${VBA_NEXT_SOURCE_DIR}/src/*.cpp
+  ${VBA_NEXT_SOURCE_DIR}/libretro/libretro.cpp
+  ${VBA_NEXT_SOURCE_DIR}/libretro-common/rthreads/rsemaphore.c
+  ${VBA_NEXT_SOURCE_DIR}/libretro-common/rthreads/rthreads.c
+  ${VBA_NEXT_SOURCE_DIR}/libretro-common/compat/*.c
+  ${VBA_NEXT_SOURCE_DIR}/libretro-common/encodings/*.c
+  ${VBA_NEXT_SOURCE_DIR}/libretro-common/file/*.c
+  ${VBA_NEXT_SOURCE_DIR}/libretro-common/streams/*.c
+  ${VBA_NEXT_SOURCE_DIR}/libretro-common/string/*.c
+  ${VBA_NEXT_SOURCE_DIR}/libretro-common/time/*.c)
 
-## ALL SOURCES
-set(SOURCES
-        ${PORT_SOURCES}
-        ${PORT_RPI_SOURCES}
-        ${GBA_EMU_SOURCES}
-        ${GBA_PORT_SOURCES}
-        ${VBA_NEXT_SOURCE}
-)
+# ALL SOURCES
+set(SOURCES ${PORT_SOURCES} ${PORT_RPI_SOURCES} ${GBA_EMU_SOURCES}
+            ${GBA_PORT_SOURCES} ${VBA_NEXT_SOURCE})
 
 # Subdirectory
 add_subdirectory(${PROJECT_SOURCE_DIR}/lvgl ${PROJECT_BINARY_DIR}/build_lvgl)
@@ -135,17 +117,10 @@ add_executable(gba_emu main.c ${SOURCES} ${INCLUDES})
 
 # Link
 target_link_libraries(
-        gba_emu PRIVATE
-        lvgl
-        pthread
-        # lvgl::examples
-        # lvgl::demos
-        ${RPI_LINK_LIBS}
-        ${SDL2_LIBRARIES}
-)
+  gba_emu
+  PRIVATE lvgl pthread
+          # lvgl::examples lvgl::demos
+          ${RPI_LINK_LIBS} ${SDL2_LIBRARIES})
 
-set_target_properties(
-        gba_emu
-        PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/build"
-)
+set_target_properties(gba_emu PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+                                         "${PROJECT_SOURCE_DIR}/build")

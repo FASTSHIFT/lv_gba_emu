@@ -1,6 +1,6 @@
 /*
  * MIT License
- * Copyright (c) 2022 _VIFEXTech
+ * Copyright (c) 2022 - 2025 _VIFEXTech
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +20,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef LV_GBA_EMU_H
-#define LV_GBA_EMU_H
+#ifndef GBA_MENU_H
+#define GBA_MENU_H
 
 #include "lvgl/lvgl.h"
 
@@ -29,19 +29,9 @@
 extern "C" {
 #endif
 
-typedef enum {
-    LV_GBA_VIEW_MODE_SIMPLE,
-    LV_GBA_VIEW_MODE_VIRTUAL_KEYPAD,
-} lv_gba_view_mode_t;
+typedef void (*gba_menu_select_cb_t)(const char* path, void* user_data);
 
-typedef uint32_t (*lv_gba_emu_input_read_cb_t)(void* user_data);
-typedef size_t (*lv_gba_emu_audio_output_cb_t)(void* user_data, const int16_t* data, size_t frames);
-
-lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path, lv_gba_view_mode_t mode);
-void lv_gba_emu_add_input_read_cb(lv_obj_t* gba_emu, lv_gba_emu_input_read_cb_t read_cb, void* user_data);
-int lv_gba_emu_get_audio_sample_rate(lv_obj_t* gba_emu);
-void lv_gba_emu_set_audio_output_cb(lv_obj_t* gba_emu, lv_gba_emu_audio_output_cb_t audio_output_cb, void* user_data);
-void lv_gba_emu_set_on_exit_cb(lv_obj_t* gba_emu, void (*exit_cb)(void*), void* user_data);
+void gba_menu_create(lv_obj_t* parent, const char* dir_path, gba_menu_select_cb_t cb, void* user_data);
 
 #ifdef __cplusplus
 }

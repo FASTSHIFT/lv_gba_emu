@@ -63,6 +63,21 @@ static bool gba_emu_change_rom_size(const char* path)
     return true;
 }
 
+static void on_delete_event_cb(lv_event_t* e)
+{
+    gba_context_t* gba_ctx = lv_event_get_user_data(e);
+    LV_ASSERT_NULL(gba_ctx);
+
+    if (gba_ctx->timer) {
+        lv_timer_del(gba_ctx->timer);
+    }
+
+    gba_view_deinit(gba_ctx);
+    gba_retro_deinit(gba_ctx);
+    _lv_ll_clear(&gba_ctx->input_event_ll);
+    lv_free(gba_ctx);
+}
+
 lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path, lv_gba_view_mode_t mode)
 {
     LV_ASSERT_NULL(rom_file_path);
@@ -92,23 +107,9 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path, lv_gba_vie
     gba_ctx->timer = lv_timer_create(gba_emu_timer_cb, 1000 / gba_ctx->av_info.fps, gba_ctx);
 
 failed:
-    return gba_view_get_root(gba_ctx);
-}
-
-void lv_gba_emu_del(lv_obj_t* gba_emu)
-{
-    gba_context_t* gba_ctx = lv_obj_get_user_data(gba_emu);
-    LV_ASSERT_NULL(gba_ctx);
-
-    if (gba_ctx->timer) {
-        lv_timer_del(gba_ctx->timer);
-    }
-
-    gba_view_deinit(gba_ctx);
-    gba_retro_deinit(gba_ctx);
-    _lv_ll_clear(&gba_ctx->input_event_ll);
-    lv_free(gba_ctx);
-    lv_obj_del(gba_emu);
+    lv_obj_t* root = gba_view_get_root(gba_ctx);
+    lv_obj_add_event(root, on_delete_event_cb, LV_EVENT_DELETE, gba_ctx);
+    return root;
 }
 
 void lv_gba_emu_add_input_read_cb(lv_obj_t* gba_emu, lv_gba_emu_input_read_cb_t read_cb, void* user_data)
@@ -130,8 +131,16 @@ int lv_gba_emu_get_audio_sample_rate(lv_obj_t* gba_emu)
 
 void lv_gba_emu_set_audio_output_cb(lv_obj_t* gba_emu, lv_gba_emu_audio_output_cb_t audio_output_cb, void* user_data)
 {
-    gba_context_t* ctx = lv_obj_get_user_data(gba_emu);
-    LV_ASSERT_NULL(ctx);
-    ctx->audio_output_cb = audio_output_cb;
-    ctx->audio_output_user_data = user_data;
+    gba_context_t* gba_ctx = lv_obj_get_user_data(gba_emu);
+    LV_ASSERT_NULL(gba_ctx);
+    gba_ctx->audio_output_cb = audio_output_cb;
+    gba_ctx->audio_output_user_data = user_data;
+}
+
+void lv_gba_emu_set_on_exit_cb(lv_obj_t* gba_emu, void (*exit_cb)(void*), void* user_data)
+{
+    gba_context_t* gba_ctx = lv_obj_get_user_data(gba_emu);
+    LV_ASSERT_NULL(gba_ctx);
+    gba_ctx->exit_cb = exit_cb;
+    gba_ctx->exit_cb_user_data = user_data;
 }

@@ -1,6 +1,6 @@
 /*
  * MIT License
- * Copyright (c) 2022 _VIFEXTech
+ * Copyright (c) 2022 - 2025 _VIFEXTech
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +21,10 @@
  * SOFTWARE.
  */
 #include "gba_emu/gba_emu.h"
+#include "gba_emu/gba_menu.h"
 #include "lvgl/lvgl.h"
 #include "port/port.h"
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -42,6 +44,7 @@
 typedef struct
 {
     const char* file_path;
+    const char* dir_path;
     lv_gba_view_mode_t mode;
     int volume;
 } gba_emu_param_t;
@@ -49,10 +52,11 @@ typedef struct
 static void show_usage(const char* progname, int exitcode)
 {
     printf("\nUsage: %s"
-           " -f <string> -m <decimal-value> -m <decimal-value> -h\n",
+           " -f <string> -d <string> -m <decimal-value> -v <decimal-value> -h\n",
         progname);
     printf("\nWhere:\n");
     printf("  -f <string> rom file path.\n");
+    printf("  -d <string> rom directory path (default: .).\n");
     printf("  -m <decimal-value> view mode: "
            "0: simple; 1: virtual keypad.\n");
     printf("  -v <decimal-value> set volume: 0 ~ 100.\n");
@@ -65,18 +69,19 @@ static void parse_commandline(int argc, char* const* argv, gba_emu_param_t* para
 {
     int ch;
 
-    if (argc < 2) {
-        show_usage(argv[0], EXIT_FAILURE);
-    }
-
     memset(param, 0, sizeof(gba_emu_param_t));
     param->mode = LV_VER_RES < 400 ? LV_GBA_VIEW_MODE_SIMPLE : LV_GBA_VIEW_MODE_VIRTUAL_KEYPAD;
     param->volume = 100;
+    param->dir_path = ".";
 
-    while ((ch = getopt(argc, argv, "f:m:v:h")) != -1) {
+    while ((ch = getopt(argc, argv, "f:d:m:v:h")) != -1) {
         switch (ch) {
         case 'f':
             param->file_path = optarg;
+            break;
+
+        case 'd':
+            param->dir_path = optarg;
             break;
 
         case 'm':
@@ -102,6 +107,47 @@ static void log_print_cb(lv_log_level_t level, const char* str)
     printf("[LVGL]%s", str);
 }
 
+static void on_rom_selected(const char* path, void* user_data);
+
+static void return_to_menu(void * user_data) {
+    gba_audio_deinit(NULL);
+    gba_emu_param_t * param = (gba_emu_param_t *)user_data;
+    lv_obj_clean(lv_scr_act());
+    gba_menu_create(lv_scr_act(), param->dir_path, on_rom_selected, param);
+}
+
+static void on_game_exit(void * user_data) {
+    lv_async_call(return_to_menu, user_data);
+}
+
+static void on_rom_selected(const char* path, void* user_data)
+{
+    gba_emu_param_t* param = (gba_emu_param_t*)user_data;
+
+    lv_obj_clean(lv_scr_act());
+
+    lv_obj_t* gba_emu = lv_gba_emu_create(lv_scr_act(), path, param->mode);
+
+    if (!gba_emu) {
+        LV_LOG_USER("create gba emu failed");
+        gba_menu_create(lv_scr_act(), param->dir_path, on_rom_selected, param);
+        return;
+    }
+
+    lv_gba_emu_set_on_exit_cb(gba_emu, on_game_exit, param);
+
+    gba_port_init(gba_emu);
+
+    LV_LOG_USER("volume = %d", param->volume);
+    if (param->volume > 0) {
+        if (gba_audio_init(gba_emu) < 0) {
+            LV_LOG_WARN("audio init failed");
+        }
+    }
+
+    lv_obj_center(gba_emu);
+}
+
 int main(int argc, const char* argv[])
 {
 #if LV_USE_LOG
@@ -115,26 +161,14 @@ int main(int argc, const char* argv[])
         return -1;
     }
 
-    gba_emu_param_t param;
+    static gba_emu_param_t param;
     parse_commandline(argc, (char* const*)argv, &param);
 
-    lv_obj_t* gba_emu = lv_gba_emu_create(lv_scr_act(), param.file_path, param.mode);
-
-    if (!gba_emu) {
-        LV_LOG_USER("create gba emu failed");
-        return -1;
+    if (param.file_path) {
+        on_rom_selected(param.file_path, &param);
+    } else {
+        gba_menu_create(lv_scr_act(), param.dir_path, on_rom_selected, &param);
     }
-
-    gba_port_init(gba_emu);
-
-    LV_LOG_USER("volume = %d", param.volume);
-    if (param.volume > 0) {
-        if (gba_audio_init(gba_emu) < 0) {
-            LV_LOG_WARN("audio init failed");
-        }
-    }
-
-    lv_obj_center(gba_emu);
 
     while (true) {
         uint32_t sleep_ms = lv_timer_handler();

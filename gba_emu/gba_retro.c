@@ -113,6 +113,19 @@ static void retro_input_poll_cb(void)
         uint32_t key_state = input_event->read_cb(input_event->user_data);
         gba_ctx_p->key_state |= key_state;
     }
+
+    if (gba_ctx_p->key_state & (1 << GBA_JOYPAD_SELECT)) {
+        if (gba_ctx_p->select_press_tick == 0) {
+            gba_ctx_p->select_press_tick = lv_tick_get();
+        } else if (lv_tick_elaps(gba_ctx_p->select_press_tick) > 2000) {
+            if (gba_ctx_p->exit_cb) {
+                gba_ctx_p->exit_cb(gba_ctx_p->exit_cb_user_data);
+                gba_ctx_p->select_press_tick = 0;
+            }
+        }
+    } else {
+        gba_ctx_p->select_press_tick = 0;
+    }
 }
 
 static int16_t retro_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id)
