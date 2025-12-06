@@ -7,6 +7,13 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Platform config
 option(ENABLE_DEBUG "Enable debug build" OFF)
+option(ENABLE_32BIT "Enable 32-bit build" OFF)
+
+if(ENABLE_32BIT)
+  message(STATUS "32-bit build enabled")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+endif()
 
 if(ENABLE_DEBUG)
   message(STATUS "Debug build enabled")
