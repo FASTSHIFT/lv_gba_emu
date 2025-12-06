@@ -49,6 +49,7 @@ if(LV_USE_RPI)
     set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${RPI_BUILD_FLAGS})
     set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS})
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -flto)
+    message(STATUS "Enabled Raspberry Pi optimizations: ${RPI_BUILD_FLAGS}")
   endif()
 
   # Link libs
@@ -65,9 +66,9 @@ else()
 
   # Address Sanitizer
   if(ENABLE_ASAN)
-    message(STATUS "Address Sanitizer enabled")
     set(ASAN_FLAGS
         "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer")
+    message(STATUS "Enabled Address Sanitizer: ${ASAN_FLAGS}")
     add_definitions(${ASAN_FLAGS})
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${ASAN_FLAGS})
   endif()
