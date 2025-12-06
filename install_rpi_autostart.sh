@@ -75,6 +75,7 @@ Group=audio
 SupplementaryGroups=gpio input video render
 Environment=TERM=linux
 Environment=XDG_RUNTIME_DIR=/run/user/$REAL_UID
+Environment=LV_GBA_AUDIO_DEVICE=sysdefault:CARD=0
 
 [Install]
 WantedBy=multi-user.target

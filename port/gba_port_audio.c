@@ -228,10 +228,15 @@ static void* audio_thread(void* arg)
 static int audio_init(audio_ctx_t* ctx)
 {
     int ret;
+    const char* device = getenv("LV_GBA_AUDIO_DEVICE");
+    if (!device) {
+        device = PCM_DEVICE;
+    }
+
     /* Initialize ALSA PCM handle */
-    ret = snd_pcm_open(&ctx->pcm_handle, PCM_DEVICE, SND_PCM_STREAM_PLAYBACK, 0);
+    ret = snd_pcm_open(&ctx->pcm_handle, device, SND_PCM_STREAM_PLAYBACK, 0);
     if (ret < 0) {
-        LV_LOG_ERROR("Failed to open PCM device: %s", PCM_DEVICE);
+        LV_LOG_ERROR("Failed to open PCM device: %s, error: %s", device, snd_strerror(ret));
         return ret;
     }
 
