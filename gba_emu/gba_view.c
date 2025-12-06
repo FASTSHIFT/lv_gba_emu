@@ -209,6 +209,7 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par, int mode)
 {
     gba_view_t* view = lv_malloc(sizeof(gba_view_t));
     LV_ASSERT_MALLOC(view);
+    lv_memzero(view, sizeof(gba_view_t));
     ctx->view = view;
 
     lv_obj_t* root = lv_obj_create(par);
