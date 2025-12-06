@@ -37,6 +37,8 @@
 #define KEY_B_PIN 4
 #define KEY_SELECT_PIN 16
 #define KEY_START_PIN 26
+#define KEY_L_PIN 5
+#define KEY_R_PIN 6
 
 #define HOR_RES 320
 #define VER_RES 240
@@ -59,6 +61,11 @@ typedef struct {
     uint16_t draw_buf2[HOR_RES * VER_RES];
 } disp_refr_ctx_t;
 
+typedef struct {
+    uint8_t pin;
+    lv_key_t key;
+} key_map_t;
+
 /**********************
  *  STATIC PROTOTYPES
  **********************/
@@ -71,6 +78,19 @@ static void keypad_read(lv_indev_t* indev, lv_indev_data_t* data);
 /**********************
  *  STATIC VARIABLES
  **********************/
+
+static const key_map_t key_map[] = {
+    { KEY_UP_PIN, LV_KEY_UP },
+    { KEY_DOWN_PIN, LV_KEY_DOWN },
+    { KEY_LEFT_PIN, LV_KEY_LEFT },
+    { KEY_RIGHT_PIN, LV_KEY_RIGHT },
+    { KEY_A_PIN, LV_KEY_ENTER },
+    { KEY_B_PIN, LV_KEY_ESC },
+    { KEY_SELECT_PIN, LV_KEY_BACKSPACE },
+    { KEY_START_PIN, LV_KEY_ENTER },
+    { KEY_L_PIN, LV_KEY_PREV },
+    { KEY_R_PIN, LV_KEY_NEXT }
+};
 
 /**********************
  *      MACROS
@@ -120,10 +140,9 @@ int lv_port_init(void)
         LV_DISP_RENDER_MODE_PARTIAL);
 
     /* Init keys */
-    const int keys[] = { KEY_UP_PIN, KEY_DOWN_PIN, KEY_LEFT_PIN, KEY_RIGHT_PIN, KEY_A_PIN, KEY_B_PIN, KEY_SELECT_PIN, KEY_START_PIN };
-    for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
-        pinMode(keys[i], INPUT);
-        pullUpDnControl(keys[i], PUD_UP);
+    for (int i = 0; i < sizeof(key_map) / sizeof(key_map[0]); i++) {
+        pinMode(key_map[i].pin, INPUT);
+        pullUpDnControl(key_map[i].pin, PUD_UP);
     }
 
     /* Register indev */
@@ -181,22 +200,11 @@ static void keypad_read(lv_indev_t* indev, lv_indev_data_t* data)
     static uint32_t last_key = 0;
     uint32_t act_key = 0;
 
-    if (digitalRead(KEY_UP_PIN) == 0) {
-        act_key = LV_KEY_UP;
-    } else if (digitalRead(KEY_DOWN_PIN) == 0) {
-        act_key = LV_KEY_DOWN;
-    } else if (digitalRead(KEY_LEFT_PIN) == 0) {
-        act_key = LV_KEY_LEFT;
-    } else if (digitalRead(KEY_RIGHT_PIN) == 0) {
-        act_key = LV_KEY_RIGHT;
-    } else if (digitalRead(KEY_A_PIN) == 0) {
-        act_key = LV_KEY_ENTER;
-    } else if (digitalRead(KEY_B_PIN) == 0) {
-        act_key = LV_KEY_ESC;
-    } else if (digitalRead(KEY_SELECT_PIN) == 0) {
-        act_key = LV_KEY_BACKSPACE;
-    } else if (digitalRead(KEY_START_PIN) == 0) {
-        act_key = LV_KEY_ENTER;
+    for (int i = 0; i < sizeof(key_map) / sizeof(key_map[0]); i++) {
+        if (digitalRead(key_map[i].pin) == 0) {
+            act_key = key_map[i].key;
+            break;
+        }
     }
 
     if (act_key != 0) {
