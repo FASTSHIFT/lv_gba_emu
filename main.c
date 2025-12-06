@@ -211,7 +211,8 @@ static void start_intro(gba_emu_param_t* param)
     label = create_intro_label("By _VIFEXTech", 800, 1600);
     lv_obj_align(label, LV_ALIGN_BOTTOM_RIGHT, -20, -50);
 
-    lv_timer_create(intro_timer_cb, 3000, param);
+    lv_timer_t* timer = lv_timer_create(intro_timer_cb, 3000, param);
+    lv_timer_set_repeat_count(timer, 1);
 }
 
 int main(int argc, const char* argv[])
