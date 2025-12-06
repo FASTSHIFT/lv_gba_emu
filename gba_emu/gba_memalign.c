@@ -40,12 +40,13 @@ void* memalign_alloc(size_t boundary, size_t size)
 
 void memalign_free(void* ptr)
 {
-    void** p = NULL;
+    void* original_ptr;
     if (!ptr)
         return;
 
-    p = (void**)ptr;
-    lv_free(p[-1]);
+    /* Avoid unalign access */
+    lv_memcpy(&original_ptr, (uint8_t*)ptr - sizeof(void*), sizeof(void*));
+    lv_free(original_ptr);
 }
 
 void* memalign_alloc_aligned(size_t size)
