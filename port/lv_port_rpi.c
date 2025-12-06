@@ -66,7 +66,7 @@ typedef struct {
 static void disp_flush_cb(lv_disp_t* disp, const lv_area_t* area, lv_color_t* color_p);
 static void disp_wait_cb(lv_disp_t* disp);
 static void* disp_thread(void* arg);
-static void keypad_read(lv_indev_drv_t* indev_drv, lv_indev_data_t* data);
+static void keypad_read(lv_indev_t* indev, lv_indev_data_t* data);
 
 /**********************
  *  STATIC VARIABLES
@@ -95,11 +95,9 @@ int lv_port_init(void)
     }
 
     /* Register indev */
-    static lv_indev_drv_t indev_drv;
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_KEYPAD;
-    indev_drv.read_cb = keypad_read;
-    lv_indev_t* indev = lv_indev_drv_register(&indev_drv);
+    lv_indev_t* indev = lv_indev_create();
+    lv_indev_set_type(indev, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_read_cb(indev, keypad_read);
 
     lv_group_set_default(lv_group_create());
     lv_indev_set_group(indev, lv_group_get_default());
@@ -178,27 +176,28 @@ static void disp_flush(disp_refr_ctx_t* ctx, int16_t x, int16_t y, const uint16_
     sem_post(&ctx->flush_sem);
 }
 
-static void keypad_read(lv_indev_drv_t* indev_drv, lv_indev_data_t* data)
+static void keypad_read(lv_indev_t* indev, lv_indev_data_t* data)
 {
     static uint32_t last_key = 0;
     uint32_t act_key = 0;
 
-    if (digitalRead(KEY_UP_PIN) == LOW)
+    if (digitalRead(KEY_UP_PIN) == 0) {
         act_key = LV_KEY_UP;
-    else if (digitalRead(KEY_DOWN_PIN) == LOW)
+    } else if (digitalRead(KEY_DOWN_PIN) == 0) {
         act_key = LV_KEY_DOWN;
-    else if (digitalRead(KEY_LEFT_PIN) == LOW)
+    } else if (digitalRead(KEY_LEFT_PIN) == 0) {
         act_key = LV_KEY_LEFT;
-    else if (digitalRead(KEY_RIGHT_PIN) == LOW)
+    } else if (digitalRead(KEY_RIGHT_PIN) == 0) {
         act_key = LV_KEY_RIGHT;
-    else if (digitalRead(KEY_A_PIN) == LOW)
+    } else if (digitalRead(KEY_A_PIN) == 0) {
         act_key = LV_KEY_ENTER;
-    else if (digitalRead(KEY_B_PIN) == LOW)
+    } else if (digitalRead(KEY_B_PIN) == 0) {
         act_key = LV_KEY_ESC;
-    else if (digitalRead(KEY_SELECT_PIN) == LOW)
-        act_key = LV_KEY_NEXT;
-    else if (digitalRead(KEY_START_PIN) == LOW)
-        act_key = LV_KEY_PREV;
+    } else if (digitalRead(KEY_SELECT_PIN) == 0) {
+        act_key = LV_KEY_BACKSPACE;
+    } else if (digitalRead(KEY_START_PIN) == 0) {
+        act_key = LV_KEY_ENTER;
+    }
 
     if (act_key != 0) {
         data->state = LV_INDEV_STATE_PRESSED;
@@ -206,6 +205,7 @@ static void keypad_read(lv_indev_drv_t* indev_drv, lv_indev_data_t* data)
     } else {
         data->state = LV_INDEV_STATE_RELEASED;
     }
+
     data->key = last_key;
 }
 
