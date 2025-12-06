@@ -79,11 +79,14 @@ typedef struct gba_context_s {
     void (*exit_cb)(void* user_data);
     void* exit_cb_user_data;
     uint32_t select_press_tick;
+    char rom_path[256];
 } gba_context_t;
 
 void gba_retro_init(gba_context_t* ctx);
 void gba_retro_deinit(gba_context_t* ctx);
 bool gba_retro_load_game(gba_context_t* ctx, const char* path);
+void gba_retro_save_game(gba_context_t* ctx);
+void gba_retro_load_save(gba_context_t* ctx);
 void gba_retro_run(gba_context_t* ctx);
 
 bool gba_view_init(gba_context_t* ctx, lv_obj_t* par, int mode);

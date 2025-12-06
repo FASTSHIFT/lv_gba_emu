@@ -72,6 +72,8 @@ static void on_delete_event_cb(lv_event_t* e)
         lv_timer_del(gba_ctx->timer);
     }
 
+    gba_retro_save_game(gba_ctx);
+
     gba_view_deinit(gba_ctx);
     gba_retro_deinit(gba_ctx);
     _lv_ll_clear(&gba_ctx->input_event_ll);
@@ -104,6 +106,9 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path, lv_gba_vie
         LV_LOG_ERROR("load ROM: %s failed", real_path);
         goto failed;
     }
+
+    lv_strncpy(gba_ctx->rom_path, real_path, sizeof(gba_ctx->rom_path) - 1);
+    gba_retro_load_save(gba_ctx);
 
     gba_ctx->timer = lv_timer_create(gba_emu_timer_cb, 1000 / gba_ctx->av_info.fps, gba_ctx);
 

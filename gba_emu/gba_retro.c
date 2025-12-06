@@ -23,6 +23,7 @@
 #include "gba_internal.h"
 #include "libretro.h"
 #include <math.h>
+#include <string.h>
 
 #define GBA_FB_STRIDE 256
 #ifndef GBA_FRAME_SKIP
@@ -179,4 +180,75 @@ void gba_retro_run(gba_context_t* ctx)
         ctx->invalidate = false;
     }
 #endif
+}
+
+static void gba_retro_get_save_path(char* save_path, size_t len, const char* rom_path)
+{
+    strncpy(save_path, rom_path, len - 1);
+    char* ext = strrchr(save_path, '.');
+    if (ext) {
+        strncpy(ext, ".sav", 5);
+    } else {
+        strncat(save_path, ".sav", len - strlen(save_path) - 1);
+    }
+}
+
+void gba_retro_save_game(gba_context_t* ctx)
+{
+    size_t size = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+    void* data = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+
+    if (size == 0 || data == NULL) {
+        return;
+    }
+
+    char save_path[256];
+    gba_retro_get_save_path(save_path, sizeof(save_path), ctx->rom_path);
+
+    lv_fs_file_t file;
+    lv_fs_res_t res = lv_fs_open(&file, save_path, LV_FS_MODE_WR);
+    if (res != LV_FS_RES_OK) {
+        LV_LOG_ERROR("save game open %s failed: %d", save_path, res);
+        return;
+    }
+
+    uint32_t bw;
+    res = lv_fs_write(&file, data, size, &bw);
+    lv_fs_close(&file);
+
+    if (res != LV_FS_RES_OK || bw != size) {
+        LV_LOG_ERROR("save game write failed: %d", res);
+    } else {
+        LV_LOG_USER("Saved game to %s", save_path);
+    }
+}
+
+void gba_retro_load_save(gba_context_t* ctx)
+{
+    size_t size = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+    void* data = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+
+    if (size == 0 || data == NULL) {
+        return;
+    }
+
+    char save_path[256];
+    gba_retro_get_save_path(save_path, sizeof(save_path), ctx->rom_path);
+
+    lv_fs_file_t file;
+    lv_fs_res_t res = lv_fs_open(&file, save_path, LV_FS_MODE_RD);
+    if (res != LV_FS_RES_OK) {
+        LV_LOG_USER("save game not found: %s", save_path);
+        return;
+    }
+
+    uint32_t br;
+    res = lv_fs_read(&file, data, size, &br);
+    lv_fs_close(&file);
+
+    if (res != LV_FS_RES_OK || br != size) {
+        LV_LOG_WARN("load save game failed or incomplete: %d", res);
+    } else {
+        LV_LOG_USER("Loaded save game from %s", save_path);
+    }
 }
