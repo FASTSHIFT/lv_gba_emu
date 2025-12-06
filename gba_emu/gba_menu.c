@@ -72,6 +72,7 @@ void gba_menu_create(lv_obj_t* parent, const char* dir_path, gba_menu_select_cb_
     g_menu_ctx.user_data = user_data;
 
     lv_obj_t* list = lv_list_create(parent);
+    lv_obj_set_style_text_font(list, &lv_font_simsun_16_cjk, 0);
     lv_obj_set_size(list, LV_PCT(100), LV_PCT(100));
     lv_obj_center(list);
 
