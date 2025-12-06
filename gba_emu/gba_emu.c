@@ -81,6 +81,7 @@ static void on_delete_event_cb(lv_event_t* e)
 lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path, lv_gba_view_mode_t mode)
 {
     LV_ASSERT_NULL(rom_file_path);
+    lv_obj_t* root;
 
     gba_context_t* gba_ctx = lv_malloc(sizeof(gba_context_t));
     LV_ASSERT_MALLOC(gba_ctx);
@@ -107,7 +108,7 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path, lv_gba_vie
     gba_ctx->timer = lv_timer_create(gba_emu_timer_cb, 1000 / gba_ctx->av_info.fps, gba_ctx);
 
 failed:
-    lv_obj_t* root = gba_view_get_root(gba_ctx);
+    root = gba_view_get_root(gba_ctx);
     lv_obj_add_event(root, on_delete_event_cb, LV_EVENT_DELETE, gba_ctx);
     return root;
 }
