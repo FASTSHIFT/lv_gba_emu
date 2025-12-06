@@ -11,6 +11,17 @@ PROJECT_ROOT=$(pwd)
 BIN_NAME="gba_emu"
 SERVICE_NAME="lv_gba_emu.service"
 
+# Detect real user (who ran sudo)
+if [ -n "$SUDO_USER" ]; then
+    REAL_USER=$SUDO_USER
+    REAL_UID=$(id -u $SUDO_USER)
+else
+    REAL_USER=$(whoami)
+    REAL_UID=$(id -u)
+fi
+
+echo "Installing for user: $REAL_USER (UID: $REAL_UID)"
+
 if [ "$1" == "uninstall" ]; then
     echo "Uninstalling $SERVICE_NAME..."
     systemctl stop $SERVICE_NAME || true
@@ -59,8 +70,11 @@ Type=simple
 ExecStart=$PROJECT_ROOT/build/$BIN_NAME -d rom
 WorkingDirectory=$PROJECT_ROOT
 Restart=no
-User=root
+User=$REAL_USER
+Group=audio
+SupplementaryGroups=gpio input video render
 Environment=TERM=linux
+Environment=XDG_RUNTIME_DIR=/run/user/$REAL_UID
 
 [Install]
 WantedBy=multi-user.target
