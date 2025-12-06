@@ -148,6 +148,7 @@ static void btn_create(gba_context_t* ctx)
         lv_obj_set_size(cont, cont_size, cont_size);
         lv_obj_add_flag(cont, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
         lv_obj_set_style_pad_all(cont, 0, 0);
+        lv_obj_set_style_border_width(cont, 0, 0);
 
         lv_obj_t** btn_arr = &view->btn.dir.up;
         for (int i = 0; i < GBA_ARRAY_SIZE(btn_dir_map); i++) {
@@ -168,6 +169,7 @@ static void btn_create(gba_context_t* ctx)
 
         lv_obj_set_size(cont, cont_size, cont_size);
         lv_obj_set_style_pad_all(cont, 0, 0);
+        lv_obj_set_style_border_width(cont, 0, 0);
 
         lv_obj_t** btn_arr = &view->btn.func.A;
         for (int i = 0; i < GBA_ARRAY_SIZE(btn_func_map); i++) {
@@ -189,6 +191,7 @@ static void btn_create(gba_context_t* ctx)
         lv_obj_set_size(cont, cont_size * 2, LV_SIZE_CONTENT);
         lv_obj_add_flag(cont, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
         lv_obj_set_style_pad_all(cont, 0, 0);
+        lv_obj_set_style_border_width(cont, 0, 0);
 
         lv_obj_t** btn_arr = &view->btn.ctrl.start;
         for (int i = 0; i < GBA_ARRAY_SIZE(btn_ctrl_map); i++) {
