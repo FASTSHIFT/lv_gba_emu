@@ -55,6 +55,16 @@ static void event_handler(lv_event_t* e)
         if (g_menu_ctx.cb) {
             g_menu_ctx.cb(full_path, g_menu_ctx.user_data);
         }
+    } else if (code == LV_EVENT_FOCUSED) {
+        lv_obj_t* label = lv_obj_get_child(btn, 0);
+        if (label) {
+            lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
+        }
+    } else if (code == LV_EVENT_DEFOCUSED) {
+        lv_obj_t* label = lv_obj_get_child(btn, 0);
+        if (label) {
+            lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
+        }
     }
 }
 
@@ -96,6 +106,13 @@ void gba_menu_create(lv_obj_t* parent, const char* dir_path, gba_menu_select_cb_
             if (is_gba_file(fn)) {
                 lv_obj_t* btn = lv_list_add_btn(list, NULL, fn);
                 lv_obj_add_event(btn, event_handler, LV_EVENT_CLICKED, NULL);
+                lv_obj_add_event(btn, event_handler, LV_EVENT_FOCUSED, NULL);
+                lv_obj_add_event(btn, event_handler, LV_EVENT_DEFOCUSED, NULL);
+                
+                lv_obj_t* label = lv_obj_get_child(btn, 0);
+                if (label) {
+                    lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
+                }
                 count++;
             }
         }
