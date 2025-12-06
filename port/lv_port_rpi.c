@@ -87,21 +87,6 @@ int lv_port_init(void)
         return ret;
     }
 
-    /* Init keys */
-    int keys[] = { KEY_UP_PIN, KEY_DOWN_PIN, KEY_LEFT_PIN, KEY_RIGHT_PIN, KEY_A_PIN, KEY_B_PIN, KEY_SELECT_PIN, KEY_START_PIN };
-    for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
-        pinMode(keys[i], INPUT);
-        pullUpDnControl(keys[i], PUD_UP);
-    }
-
-    /* Register indev */
-    lv_indev_t* indev = lv_indev_create();
-    lv_indev_set_type(indev, LV_INDEV_TYPE_KEYPAD);
-    lv_indev_set_read_cb(indev, keypad_read);
-
-    lv_group_set_default(lv_group_create());
-    lv_indev_set_group(indev, lv_group_get_default());
-
     pinMode(DISP_BLK_PIN, OUTPUT);
     digitalWrite(DISP_BLK_PIN, 1);
 
@@ -133,6 +118,21 @@ int lv_port_init(void)
         ctx.draw_buf2,
         sizeof(ctx.draw_buf1),
         LV_DISP_RENDER_MODE_PARTIAL);
+
+    /* Init keys */
+    const int keys[] = { KEY_UP_PIN, KEY_DOWN_PIN, KEY_LEFT_PIN, KEY_RIGHT_PIN, KEY_A_PIN, KEY_B_PIN, KEY_SELECT_PIN, KEY_START_PIN };
+    for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
+        pinMode(keys[i], INPUT);
+        pullUpDnControl(keys[i], PUD_UP);
+    }
+
+    /* Register indev */
+    lv_indev_t* indev = lv_indev_create();
+    lv_indev_set_type(indev, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_read_cb(indev, keypad_read);
+
+    lv_group_set_default(lv_group_create());
+    lv_indev_set_group(indev, lv_group_get_default());
 
     return 0;
 }
