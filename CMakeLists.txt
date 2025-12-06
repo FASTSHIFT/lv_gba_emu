@@ -9,6 +9,17 @@ set(CMAKE_CXX_STANDARD 11)
 option(ENABLE_DEBUG "Enable debug build" OFF)
 option(ENABLE_32BIT "Enable 32-bit build" OFF)
 
+# Auto-detect Raspberry Pi
+if(NOT DEFINED LV_USE_RPI AND CMAKE_SYSTEM_NAME MATCHES "Linux")
+  if(EXISTS "/proc/device-tree/model")
+    file(READ "/proc/device-tree/model" DEVICE_MODEL)
+    if(DEVICE_MODEL MATCHES "Raspberry Pi")
+      set(LV_USE_RPI ON)
+      message(STATUS "Auto-detected Raspberry Pi: ${DEVICE_MODEL}")
+    endif()
+  endif()
+endif()
+
 if(ENABLE_32BIT)
   message(STATUS "32-bit build enabled")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
@@ -33,10 +44,12 @@ if(LV_USE_RPI)
   add_definitions(-DLV_USE_RPI=1 -DLV_USE_SDL=0 -DTHREADED_RENDERER=1)
 
   # FLAGS
-  set(RPI_BUILD_FLAGS "-mfpu=vfp -Ofast -flto")
-  set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${RPI_BUILD_FLAGS})
-  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS})
-  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -flto)
+  if(NOT ENABLE_DEBUG)
+    set(RPI_BUILD_FLAGS "-mfpu=vfp -Ofast -flto")
+    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${RPI_BUILD_FLAGS})
+    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS})
+    set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -flto)
+  endif()
 
   # Link libs
   set(RPI_LINK_LIBS wiringPi asound)
