@@ -143,6 +143,7 @@ file(
   VBA_NEXT_SOURCE
   ${VBA_NEXT_SOURCE_DIR}/src/*.c
   ${VBA_NEXT_SOURCE_DIR}/src/*.cpp
+  ${VBA_NEXT_SOURCE_DIR}/src/*.S
   ${VBA_NEXT_SOURCE_DIR}/libretro/libretro.cpp
   ${VBA_NEXT_SOURCE_DIR}/libretro-common/rthreads/rsemaphore.c
   ${VBA_NEXT_SOURCE_DIR}/libretro-common/rthreads/rthreads.c
