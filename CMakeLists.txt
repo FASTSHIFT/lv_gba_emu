@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 11)
 # Platform config
 option(ENABLE_DEBUG "Enable debug build" OFF)
 option(ENABLE_32BIT "Enable 32-bit build" OFF)
+option(ENABLE_LTO "Enable link-time optimization" ON)
 
 # Auto-detect Raspberry Pi
 if(NOT DEFINED LV_USE_RPI AND CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -36,19 +37,33 @@ else()
   message(STATUS "Release build enabled")
   add_definitions(-DDEBUG=0)
   set(CMAKE_BUILD_TYPE "Release")
+
+  # Use string concatenation to avoid semicolon separation
+  set(OPT_FLAGS
+      "-Ofast -fwhole-program -fuse-linker-plugin -falign-functions=1 -falign-jumps=1 -falign-loops=1"
+  )
+
+  if(ENABLE_LTO)
+    message(STATUS "Link-time optimization enabled")
+    set(OPT_FLAGS "${OPT_FLAGS} -flto=4")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+  endif()
+
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OPT_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPT_FLAGS}")
 endif()
 
 # Common Platform
 if(LV_USE_RPI)
   message(STATUS "Platform: Raspberry Pi - GamePi20")
-  add_definitions(-DLV_USE_RPI=1 -DLV_USE_SDL=0 -DTHREADED_RENDERER=1)
+  add_definitions(-DLV_USE_RPI=1 -DLV_USE_SDL=0 -DTHREADED_RENDERER=1
+                  -DHAVE_NEON=1)
 
   # FLAGS
   if(NOT ENABLE_DEBUG)
-    set(RPI_BUILD_FLAGS "-mfpu=vfp -Ofast -flto")
-    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${RPI_BUILD_FLAGS})
-    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS})
-    set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -flto)
+    set(RPI_BUILD_FLAGS "-mfpu=vfp ${OPT_FLAGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${RPI_BUILD_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS}")
     message(STATUS "Enabled Raspberry Pi optimizations: ${RPI_BUILD_FLAGS}")
   endif()
 
@@ -58,7 +73,7 @@ if(LV_USE_RPI)
 else()
   message(STATUS "Platform: UNIX - SDL2")
   add_definitions(-DLV_SCREEN_HOR_RES=320 -DLV_SCREEN_VER_RES=480
-                  -DLV_USE_SDL=1 -DTHREADED_RENDERER=0)
+                  -DLV_USE_SDL=1 -DTHREADED_RENDERER=0 -DHAVE_NEON=0)
 
   add_definitions(-DUSE_SDL=1 -DHAVE_UNISTD_H=1 -DHAVE_FCNTL_H=1)
   find_package(SDL2 REQUIRED SDL2)
@@ -81,17 +96,17 @@ add_definitions(-DLV_USE_DEV_VERSION=1)
 add_definitions(
   -DFRONTEND_SUPPORTS_RGB565=1
   -DTILED_RENDERING=1
-  -DSTATIC_LINKING=0
+  -DSTATIC_LINKING=1
   -DUSE_TWEAKS=1
   -DUSE_FRAME_SKIP=1
-  -DHAVE_NEON=0
   -Dretro_sleep=lv_port_sleep
   -DNDEBUG
   -D__LIBRETRO__
   -DINLINE=inline
   -DHAVE_STDINT_H
   -DHAVE_INTTYPES_H
-  -DGBA_FRAME_SKIP="0")
+  -DGBA_FRAME_SKIP="0"
+  -DUSE_CACHE_PREFETCH=1)
 
 # Include
 set(VBA_NEXT_SOURCE_DIR ${PROJECT_SOURCE_DIR}/vba-next)
