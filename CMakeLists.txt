@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
 project(gba_emu)
 
+# Enable assembly language support
+enable_language(ASM)
+
 # C/C++ version
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
+
+# Set assembly language standard if needed
+if(CMAKE_ASM_COMPILER)
+  set(CMAKE_ASM_STANDARD 11)
+endif()
 
 # Platform config
 option(ENABLE_DEBUG "Enable debug build" OFF)
@@ -39,14 +47,17 @@ else()
   set(CMAKE_BUILD_TYPE "Release")
 
   # Use string concatenation to avoid semicolon separation
-  set(OPT_FLAGS "-Ofast")
-  string(CONCAT OPT_FLAGS
-    "-fwhole-program -fuse-linker-plugin " # Link-time optimization
-    "-fdata-sections -ffunction-sections -Wl,--gc-sections " # Code size
-    "-fno-stack-protector -fno-ident -fomit-frame-pointer " # Security
-    "-falign-functions=1 -falign-jumps=1 -falign-loops=1 " # Alignment
-    "-fno-unwind-tables -fno-asynchronous-unwind-tables -fno-unroll-loops " # Size
-    "-fmerge-all-constants -fno-math-errno" # Math
+  set(OPT_FLAGS "")
+  string(
+    CONCAT
+      OPT_FLAGS
+      "-Ofast "
+      "-fwhole-program -fuse-linker-plugin " # Link-time optimization
+      "-fdata-sections -ffunction-sections -Wl,--gc-sections " # Code size
+      "-fno-stack-protector -fno-ident -fomit-frame-pointer " # Security
+      "-falign-functions=1 -falign-jumps=1 -falign-loops=1 " # Alignment
+      "-fno-unwind-tables -fno-asynchronous-unwind-tables -fno-unroll-loops " # Size
+      "-fmerge-all-constants -fno-math-errno" # Math
   )
 
   if(ENABLE_LTO)
@@ -57,6 +68,11 @@ else()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OPT_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPT_FLAGS}")
+
+  # Set flags for assembly files
+  if(CMAKE_ASM_COMPILER)
+    set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${OPT_FLAGS}")
+  endif()
 endif()
 
 # Common Platform
@@ -70,8 +86,10 @@ if(LV_USE_RPI)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "armv7" OR CMAKE_SYSTEM_PROCESSOR MATCHES
                                                  "aarch64")
       # Raspberry Pi 2/3/4 with ARMv7/ARMv8 support NEON
-      set(RPI_BUILD_FLAGS "-mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7-a ${OPT_FLAGS}")
+      set(RPI_BUILD_FLAGS
+          "-mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7-a ${OPT_FLAGS}")
       add_definitions(-DHAVE_NEON=1)
+      set(HAVE_NEON 1)
       message(
         STATUS "Enabled Raspberry Pi NEON optimizations: ${RPI_BUILD_FLAGS}")
     else()
@@ -149,7 +167,6 @@ file(
   VBA_NEXT_SOURCE
   ${VBA_NEXT_SOURCE_DIR}/src/*.c
   ${VBA_NEXT_SOURCE_DIR}/src/*.cpp
-  ${VBA_NEXT_SOURCE_DIR}/src/*.S
   ${VBA_NEXT_SOURCE_DIR}/libretro/libretro.cpp
   ${VBA_NEXT_SOURCE_DIR}/libretro-common/rthreads/rsemaphore.c
   ${VBA_NEXT_SOURCE_DIR}/libretro-common/rthreads/rthreads.c
@@ -159,6 +176,13 @@ file(
   ${VBA_NEXT_SOURCE_DIR}/libretro-common/streams/*.c
   ${VBA_NEXT_SOURCE_DIR}/libretro-common/string/*.c
   ${VBA_NEXT_SOURCE_DIR}/libretro-common/time/*.c)
+
+# Add neon_memcpy.S only on RPI platforms with NEON support
+if(HAVE_NEON)
+  file(GLOB VBA_NEXT_NEON_SOURCE ${VBA_NEXT_SOURCE_DIR}/src/neon_memcpy.S)
+  list(APPEND VBA_NEXT_SOURCE ${VBA_NEXT_NEON_SOURCE})
+  message(STATUS "Included NEON assembly optimizations")
+endif()
 
 # ALL SOURCES
 set(SOURCES ${PORT_SOURCES} ${PORT_RPI_SOURCES} ${GBA_EMU_SOURCES}
