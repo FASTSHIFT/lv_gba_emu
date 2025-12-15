@@ -56,15 +56,28 @@ endif()
 # Common Platform
 if(LV_USE_RPI)
   message(STATUS "Platform: Raspberry Pi - GamePi20")
-  add_definitions(-DLV_USE_RPI=1 -DLV_USE_SDL=0 -DTHREADED_RENDERER=1
-                  -DHAVE_NEON=1)
+  add_definitions(-DLV_USE_RPI=1 -DLV_USE_SDL=0 -DTHREADED_RENDERER=1)
 
   # FLAGS
   if(NOT ENABLE_DEBUG)
-    set(RPI_BUILD_FLAGS "-mfpu=vfp ${OPT_FLAGS}")
+    # Auto-detect best floating point unit for Raspberry Pi
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "armv7" OR CMAKE_SYSTEM_PROCESSOR MATCHES
+                                                 "aarch64")
+      # Raspberry Pi 2/3/4 with ARMv7/ARMv8 support NEON
+      set(RPI_BUILD_FLAGS "-mfpu=neon-vfpv4 -march=armv7-a ${OPT_FLAGS}")
+      add_definitions(-DHAVE_NEON=1)
+      message(
+        STATUS "Enabled Raspberry Pi NEON optimizations: ${RPI_BUILD_FLAGS}")
+    else()
+      # Raspberry Pi 1 with ARMv6 - use basic VFP
+      set(RPI_BUILD_FLAGS "-mfpu=vfp ${OPT_FLAGS}")
+      add_definitions(-DHAVE_NEON=0)
+      message(
+        STATUS "Enabled Raspberry Pi VFP optimizations: ${RPI_BUILD_FLAGS}")
+    endif()
+
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${RPI_BUILD_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS}")
-    message(STATUS "Enabled Raspberry Pi optimizations: ${RPI_BUILD_FLAGS}")
   endif()
 
   # Link libs
