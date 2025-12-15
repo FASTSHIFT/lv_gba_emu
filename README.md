@@ -26,6 +26,11 @@
 git clone https://github.com/FASTSHIFT/lv_gba_emu.git --recurse-submodules
 ```
 
+## Update Submodules
+```bash
+git submodule update --init --recursive
+```
+
 ## Build & Run (PC)
 ```bash
 mkdir build
