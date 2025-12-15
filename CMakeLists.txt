@@ -39,8 +39,14 @@ else()
   set(CMAKE_BUILD_TYPE "Release")
 
   # Use string concatenation to avoid semicolon separation
-  set(OPT_FLAGS
-      "-Ofast -fwhole-program -fuse-linker-plugin -falign-functions=1 -falign-jumps=1 -falign-loops=1"
+  set(OPT_FLAGS "-Ofast")
+  string(CONCAT OPT_FLAGS
+    "-fwhole-program -fuse-linker-plugin " # Link-time optimization
+    "-fdata-sections -ffunction-sections -Wl,--gc-sections " # Code size
+    "-fno-stack-protector -fno-ident -fomit-frame-pointer " # Security
+    "-falign-functions=1 -falign-jumps=1 -falign-loops=1 " # Alignment
+    "-fno-unwind-tables -fno-asynchronous-unwind-tables -fno-unroll-loops " # Size
+    "-fmerge-all-constants -fno-math-errno" # Math
   )
 
   if(ENABLE_LTO)
@@ -64,7 +70,7 @@ if(LV_USE_RPI)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "armv7" OR CMAKE_SYSTEM_PROCESSOR MATCHES
                                                  "aarch64")
       # Raspberry Pi 2/3/4 with ARMv7/ARMv8 support NEON
-      set(RPI_BUILD_FLAGS "-mfpu=neon-vfpv4 -march=armv7-a ${OPT_FLAGS}")
+      set(RPI_BUILD_FLAGS "-mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7-a ${OPT_FLAGS}")
       add_definitions(-DHAVE_NEON=1)
       message(
         STATUS "Enabled Raspberry Pi NEON optimizations: ${RPI_BUILD_FLAGS}")
