@@ -32,7 +32,7 @@ mkdir build
 cd build
 cmake ..
 make -j
-./gba_emu
+./gba_emu -d ../rom
 ```
 
 ### Command Line Options
