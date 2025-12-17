@@ -23,6 +23,7 @@
 #include "gba_emu/gba_emu.h"
 #include "gba_emu/gba_menu.h"
 #include "lvgl/lvgl.h"
+#include "lvgl/src/misc/lv_profiler_builtin.h"
 #include "port/port.h"
 #include <getopt.h>
 #include <stdio.h>
@@ -48,6 +49,7 @@ typedef struct
     lv_gba_view_mode_t mode;
     int volume;
     bool skip_intro;
+    bool enable_profiler;
 } gba_emu_param_t;
 
 static void show_usage(const char* progname, int exitcode)
@@ -62,6 +64,7 @@ static void show_usage(const char* progname, int exitcode)
            "0: simple; 1: virtual keypad.\n");
     printf("  -v <decimal-value> set volume: 0 ~ 100.\n");
     printf("  -s skip intro animation.\n");
+    printf("  -p enable profiler.\n");
     printf("  -h help.\n");
 
     exit(exitcode);
@@ -97,6 +100,10 @@ static void parse_commandline(int argc, char* const* argv, gba_emu_param_t* para
 
         case 's':
             param->skip_intro = true;
+            break;
+
+        case 'p':
+            param->enable_profiler = true;
             break;
 
         case '?':
@@ -194,6 +201,10 @@ static lv_obj_t* create_intro_label(const char* text, uint32_t delay, uint32_t d
 
 static void start_intro(gba_emu_param_t* param)
 {
+#if LV_USE_PROFILER
+    lv_profiler_builtin_set_enable(param->enable_profiler);
+#endif
+
     if (param->skip_intro) {
         if (param->file_path) {
             on_rom_selected(param->file_path, param);

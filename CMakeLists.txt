@@ -18,6 +18,7 @@ option(ENABLE_DEBUG "Enable debug build" OFF)
 option(ENABLE_32BIT "Enable 32-bit build" OFF)
 option(ENABLE_LTO "Enable link-time optimization" ON)
 option(ENABLE_SYSMON "Enable LVGL System Monitor" OFF)
+option(ENABLE_PROFILER "Enable profiling" OFF)
 
 # Auto-detect Raspberry Pi
 if(NOT DEFINED LV_USE_RPI AND CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -41,6 +42,11 @@ endif()
 if(ENABLE_SYSMON)
   message(STATUS "LVGL System Monitor enabled")
   add_definitions(-DLV_USE_SYSMON=1)
+endif()
+
+if(ENABLE_PROFILER)
+  message(STATUS "Profiling enabled")
+  add_definitions(-DLV_USE_PROFILER=1)
 endif()
 
 if(ENABLE_DEBUG)
