@@ -80,7 +80,7 @@ static void parse_commandline(int argc, char* const* argv, gba_emu_param_t* para
     param->dir_path = ".";
     param->skip_intro = false;
 
-    while ((ch = getopt(argc, argv, "f:d:m:v:sh")) != -1) {
+    while ((ch = getopt(argc, argv, "f:d:m:v:sph")) != -1) {
         switch (ch) {
         case 'f':
             param->file_path = optarg;
