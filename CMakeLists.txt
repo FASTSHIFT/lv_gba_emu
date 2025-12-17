@@ -26,7 +26,7 @@ if(NOT DEFINED LV_USE_RPI AND CMAKE_SYSTEM_NAME MATCHES "Linux")
     if(DEVICE_MODEL MATCHES "Raspberry Pi")
       set(LV_USE_RPI ON)
       add_definitions(-DHAVE_WIRING_PI=1)
-      set(RPI_LINK_LIBS wiringPi)
+      set(WIRINGPI_LIBRARIES wiringPi)
       message(STATUS "Auto-detected Raspberry Pi: ${DEVICE_MODEL}")
     endif()
   endif()
@@ -111,9 +111,7 @@ if(LV_USE_RPI)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RPI_BUILD_FLAGS}")
   endif()
 
-  # Link libs
-  set(RPI_LINK_LIBS "${RPI_LINK_LIBS} asound")
-  string(STRIP "${RPI_LINK_LIBS}" RPI_LINK_LIBS)
+  set(ASOUND_LIBRARIES asound)
 
 else()
   message(STATUS "Platform: UNIX - SDL2")
@@ -208,7 +206,7 @@ target_link_libraries(
   gba_emu
   PRIVATE lvgl pthread
           # lvgl::examples lvgl::demos
-          ${RPI_LINK_LIBS} ${SDL2_LIBRARIES})
+          ${WIRINGPI_LIBRARIES} ${ASOUND_LIBRARIES} ${SDL2_LIBRARIES})
 
 set_target_properties(gba_emu PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                          "${PROJECT_SOURCE_DIR}/build")
