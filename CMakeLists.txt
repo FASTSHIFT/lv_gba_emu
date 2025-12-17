@@ -25,6 +25,8 @@ if(NOT DEFINED LV_USE_RPI AND CMAKE_SYSTEM_NAME MATCHES "Linux")
     file(READ "/proc/device-tree/model" DEVICE_MODEL)
     if(DEVICE_MODEL MATCHES "Raspberry Pi")
       set(LV_USE_RPI ON)
+      add_definitions(-DHAVE_WIRING_PI=1)
+      set(RPI_LINK_LIBS wiringPi)
       message(STATUS "Auto-detected Raspberry Pi: ${DEVICE_MODEL}")
     endif()
   endif()
@@ -97,7 +99,7 @@ if(LV_USE_RPI)
       set(HAVE_NEON 1)
       message(
         STATUS "Enabled Raspberry Pi NEON optimizations: ${RPI_BUILD_FLAGS}")
-    else()
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "armv6")
       # Raspberry Pi 1 with ARMv6 - use basic VFP
       set(RPI_BUILD_FLAGS "-mfpu=vfp ${OPT_FLAGS}")
       add_definitions(-DHAVE_NEON=0)
@@ -110,7 +112,8 @@ if(LV_USE_RPI)
   endif()
 
   # Link libs
-  set(RPI_LINK_LIBS wiringPi asound)
+  set(RPI_LINK_LIBS "${RPI_LINK_LIBS} asound")
+  string(STRIP "${RPI_LINK_LIBS}" RPI_LINK_LIBS)
 
 else()
   message(STATUS "Platform: UNIX - SDL2")

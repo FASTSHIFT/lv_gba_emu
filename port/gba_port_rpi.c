@@ -3,7 +3,7 @@
 #if LV_USE_RPI
 
 #include "../gba_emu/gba_emu.h"
-#include <wiringPi.h>
+#include "rpi/wiring_pi_port.h"
 
 static const int key_map[] = {
     4, /* GBA_JOYPAD_B */

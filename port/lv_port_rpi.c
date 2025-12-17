@@ -12,13 +12,13 @@
 
 #include "port.h"
 #include "rpi/st7789.h"
+#include "rpi/wiring_pi_port.h"
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include <wiringPi.h>
 
 /*********************
  *      DEFINES
@@ -70,8 +70,8 @@ typedef struct {
  *  STATIC PROTOTYPES
  **********************/
 
-static void disp_flush_cb(lv_disp_t* disp, const lv_area_t* area, lv_color_t* color_p);
-static void disp_wait_cb(lv_disp_t* disp);
+static void disp_flush_cb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map);
+static void disp_wait_cb(lv_display_t* disp);
 static void* disp_thread(void* arg);
 static void keypad_read(lv_indev_t* indev, lv_indev_data_t* data);
 
@@ -128,16 +128,16 @@ int lv_port_init(void)
     sem_init(&ctx.wait_sem, 0, 0);
     pthread_create(&ctx.tid, NULL, disp_thread, &ctx);
 
-    lv_disp_t* disp = lv_disp_create(HOR_RES, VER_RES);
-    lv_disp_set_user_data(disp, &ctx);
-    lv_disp_set_flush_cb(disp, disp_flush_cb);
-    disp->wait_cb = disp_wait_cb;
-    lv_disp_set_draw_buffers(
+    lv_display_t* disp = lv_display_create(HOR_RES, VER_RES);
+    lv_display_set_driver_data(disp, &ctx);
+    lv_display_set_flush_cb(disp, disp_flush_cb);
+    lv_display_set_flush_wait_cb(disp, disp_wait_cb);
+    lv_display_set_buffers(
         disp,
         ctx.draw_buf1,
         ctx.draw_buf2,
         sizeof(ctx.draw_buf1),
-        LV_DISP_RENDER_MODE_PARTIAL);
+        LV_DISPLAY_RENDER_MODE_PARTIAL);
 
     /* Init keys */
     for (int i = 0; i < sizeof(key_map) / sizeof(key_map[0]); i++) {
@@ -217,20 +217,20 @@ static void keypad_read(lv_indev_t* indev, lv_indev_data_t* data)
     data->key = last_key;
 }
 
-static void disp_flush_cb(lv_disp_t* disp, const lv_area_t* area, lv_color_t* color_p)
+static void disp_flush_cb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map)
 {
     lv_coord_t w = (area->x2 - area->x1 + 1);
     lv_coord_t h = (area->y2 - area->y1 + 1);
 
-    disp_refr_ctx_t* ctx = lv_disp_get_user_data(disp);
-    disp_flush(ctx, area->x1, area->y1, (uint16_t*)color_p, w, h);
+    disp_refr_ctx_t* ctx = lv_display_get_driver_data(disp);
+    disp_flush(ctx, area->x1, area->y1, (uint16_t*)px_map, w, h);
 }
 
-static void disp_wait_cb(lv_disp_t* disp)
+static void disp_wait_cb(lv_display_t* disp)
 {
-    disp_refr_ctx_t* ctx = lv_disp_get_user_data(disp);
+    disp_refr_ctx_t* ctx = lv_display_get_driver_data(disp);
     sem_wait(&ctx->wait_sem);
-    lv_disp_flush_ready(disp);
+    lv_display_flush_ready(disp);
 }
 
 #endif /*USE_SDL*/

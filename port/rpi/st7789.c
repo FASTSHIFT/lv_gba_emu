@@ -1,8 +1,7 @@
 #include "st7789.h"
+#include "wiring_pi_port.h"
 #include <stdio.h>
 #include <string.h>
-#include <wiringPi.h>
-#include <wiringPiSPI.h>
 
 #define DISP_CMD_SET_X 0x2A
 #define DISP_CMD_SET_Y 0x2B
@@ -99,7 +98,7 @@ int st7789_init(
     delay(150);
 
     /* command lists */
-    write_cmd(disp, 0x11); //Sleep out
+    write_cmd(disp, 0x11); // Sleep out
     delay(120);
 
     st7789_set_rotation(disp, 0);
@@ -110,8 +109,8 @@ int st7789_init(
 #if DISP_USE_LITTLE_ENDIAN
     /* Change to Little Endian */
     write_cmd(disp, 0xB0);
-    write_data(disp, 0x00);  // RM = 0; DM = 00
-    write_data(disp, 0xF8);  // EPF = 11; ENDIAN = 1; RIM = 0; MDT = 00 (ENDIAN -> 0 MSBFirst; 1 LSB First)
+    write_data(disp, 0x00); // RM = 0; DM = 00
+    write_data(disp, 0xF8); // EPF = 11; ENDIAN = 1; RIM = 0; MDT = 00 (ENDIAN -> 0 MSBFirst; 1 LSB First)
 #endif
 
     write_cmd(disp, 0xB2);
@@ -125,19 +124,19 @@ int st7789_init(
     write_data(disp, 0x35);
 
     write_cmd(disp, 0xBB);
-    write_data(disp, 0x32); //Vcom=1.35V
+    write_data(disp, 0x32); // Vcom=1.35V
 
     write_cmd(disp, 0xC2);
     write_data(disp, 0x01);
 
     write_cmd(disp, 0xC3);
-    write_data(disp, 0x15); //GVDD=4.8V
+    write_data(disp, 0x15); // GVDD=4.8V
 
     write_cmd(disp, 0xC4);
-    write_data(disp, 0x20); //VDV, 0x20:0v
+    write_data(disp, 0x20); // VDV, 0x20:0v
 
     write_cmd(disp, 0xC6);
-    write_data(disp, 0x0F); //0x0F:60Hz
+    write_data(disp, 0x0F); // 0x0F:60Hz
 
     write_cmd(disp, 0xD0);
     write_data(disp, 0xA4);
