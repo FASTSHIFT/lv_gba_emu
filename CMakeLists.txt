@@ -75,7 +75,7 @@ else()
 
   if(ENABLE_LTO)
     message(STATUS "Link-time optimization enabled")
-    set(OPT_FLAGS "${OPT_FLAGS} -flto=4")
+    set(OPT_FLAGS "${OPT_FLAGS} -flto=auto")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
   endif()
 
