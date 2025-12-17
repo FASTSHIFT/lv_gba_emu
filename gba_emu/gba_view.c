@@ -28,8 +28,7 @@ struct gba_view_s {
 
     struct {
         lv_obj_t* canvas;
-        lv_color_t* buf;
-        bool is_buf_allocated;
+        lv_draw_buf_t draw_buf;
     } screen;
 
     struct {
@@ -221,9 +220,6 @@ void gba_view_deinit(gba_context_t* ctx)
 {
     LV_ASSERT_NULL(ctx);
     LV_ASSERT_NULL(ctx->view);
-    if (ctx->view->screen.is_buf_allocated) {
-        lv_free(ctx->view->screen.buf);
-    }
     lv_free(ctx->view);
 }
 
@@ -244,11 +240,14 @@ void gba_view_invalidate_frame(gba_context_t* ctx)
 void gba_view_draw_frame(gba_context_t* ctx, const uint16_t* buf, lv_coord_t width, lv_coord_t height)
 {
     lv_obj_t* canvas = ctx->view->screen.canvas;
-    if (ctx->view->screen.buf != (lv_color_t*)buf) {
-        ctx->view->screen.buf = (lv_color_t*)buf;
-        lv_canvas_set_buffer(canvas, ctx->view->screen.buf, ctx->av_info.fb_stride, height, LV_COLOR_FORMAT_RGB565);
-        lv_obj_set_width(canvas, width);
-        LV_LOG_USER("set direct canvas buffer = %p", ctx->view->screen.buf);
+    if (ctx->view->screen.draw_buf.data != (uint8_t*)buf) {
+        lv_draw_buf_init(
+            &ctx->view->screen.draw_buf,
+            width, height,
+            LV_COLOR_FORMAT_RGB565, ctx->av_info.fb_stride * sizeof(uint16_t),
+            (void*)buf, ctx->av_info.fb_stride * height * sizeof(uint16_t));
+        lv_canvas_set_draw_buf(canvas, &ctx->view->screen.draw_buf);
+        LV_LOG_USER("set direct canvas buffer = %p", (void*)buf);
     }
 
 #if THREADED_RENDERER
