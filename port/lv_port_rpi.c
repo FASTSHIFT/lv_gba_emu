@@ -70,6 +70,7 @@ typedef struct {
  *  STATIC PROTOTYPES
  **********************/
 
+static uint32_t tick_get_cb(void);
 static void disp_flush_cb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map);
 static void disp_wait_cb(lv_display_t* disp);
 static void* disp_thread(void* arg);
@@ -101,6 +102,9 @@ static const key_map_t key_map[] = {
  **********************/
 int lv_port_init(void)
 {
+    lv_tick_set_cb(tick_get_cb);
+    lv_delay_set_cb(lv_port_sleep);
+
     int ret = wiringPiSetupGpio();
     if (ret < 0) {
         printf("wiringPiSetupGpio failed: %d\n", ret);
@@ -161,7 +165,11 @@ void lv_port_sleep(uint32_t ms)
     usleep(ms * 1000);
 }
 
-uint32_t lv_port_tick_get(void)
+/**********************
+ *   STATIC FUNCTIONS
+ **********************/
+
+static uint32_t tick_get_cb(void)
 {
     struct timespec ts;
     uint32_t ms;
@@ -169,10 +177,6 @@ uint32_t lv_port_tick_get(void)
     ms = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
     return ms;
 }
-
-/**********************
- *   STATIC FUNCTIONS
- **********************/
 
 static void* disp_thread(void* arg)
 {
