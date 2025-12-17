@@ -81,32 +81,6 @@ static const btn_map_t btn_ctrl_map[] = {
     { "SELECT", LV_ALIGN_RIGHT_MID },
 };
 
-static bool screen_create(gba_context_t* ctx)
-{
-    gba_view_t* view = ctx->view;
-
-    lv_obj_t* canvas = lv_canvas_create(view->root);
-    view->screen.canvas = canvas;
-
-#if (LV_COLOR_DEPTH != 16)
-    lv_coord_t width = ctx->av_info.fb_width;
-    lv_coord_t height = ctx->av_info.fb_height;
-    size_t buf_size = LV_IMG_BUF_SIZE_TRUE_COLOR(width, height);
-    LV_ASSERT(buf_size > 0);
-
-    view->screen.buf = lv_malloc(buf_size);
-    LV_ASSERT_MALLOC(view->screen.buf);
-
-    if (!view->screen.buf) {
-        LV_LOG_ERROR("canvas buffer malloc failed");
-        return false;
-    }
-    view->screen.is_buf_allocated = true;
-    lv_canvas_set_buffer(view->screen.canvas, view->screen.buf, width, height, LV_COLOR_FORMAT_NATIVE);
-#endif
-    return true;
-}
-
 static uint32_t btn_read_cb(void* user_data)
 {
     gba_view_t* view = user_data;
@@ -208,7 +182,7 @@ static void btn_create(gba_context_t* ctx)
     lv_gba_emu_add_input_read_cb(view->root, btn_read_cb, view);
 }
 
-bool gba_view_init(gba_context_t* ctx, lv_obj_t* par, int mode)
+void gba_view_init(gba_context_t* ctx, lv_obj_t* par, int mode)
 {
     gba_view_t* view = lv_malloc(sizeof(gba_view_t));
     LV_ASSERT_MALLOC(view);
@@ -230,7 +204,7 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par, int mode)
         lv_obj_set_flex_align(root, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_AROUND);
     }
 
-    bool retval = screen_create(ctx);
+    view->screen.canvas = lv_canvas_create(view->root);
 
     if (mode != LV_GBA_VIEW_MODE_SIMPLE) {
         lv_obj_t* canvas = view->screen.canvas;
@@ -241,8 +215,6 @@ bool gba_view_init(gba_context_t* ctx, lv_obj_t* par, int mode)
     if (mode == LV_GBA_VIEW_MODE_VIRTUAL_KEYPAD) {
         btn_create(ctx);
     }
-
-    return retval;
 }
 
 void gba_view_deinit(gba_context_t* ctx)
@@ -272,26 +244,12 @@ void gba_view_invalidate_frame(gba_context_t* ctx)
 void gba_view_draw_frame(gba_context_t* ctx, const uint16_t* buf, lv_coord_t width, lv_coord_t height)
 {
     lv_obj_t* canvas = ctx->view->screen.canvas;
-#if (LV_COLOR_DEPTH == 16)
     if (ctx->view->screen.buf != (lv_color_t*)buf) {
         ctx->view->screen.buf = (lv_color_t*)buf;
-        lv_canvas_set_buffer(canvas, ctx->view->screen.buf, ctx->av_info.fb_stride, height, LV_COLOR_FORMAT_NATIVE);
+        lv_canvas_set_buffer(canvas, ctx->view->screen.buf, ctx->av_info.fb_stride, height, LV_COLOR_FORMAT_RGB565);
         lv_obj_set_width(canvas, width);
         LV_LOG_USER("set direct canvas buffer = %p", ctx->view->screen.buf);
     }
-#else
-    const lv_color16_t* src = (const lv_color16_t*)buf;
-    lv_color_t* dst = ctx->view->screen.buf;
-
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            *dst = lv_color_make(src->red << 3, src->green << 2, src->blue << 3);
-            dst++;
-            src++;
-        }
-        src += (ctx->av_info.fb_stride - width);
-    }
-#endif
 
 #if THREADED_RENDERER
     ctx->invalidate = true;

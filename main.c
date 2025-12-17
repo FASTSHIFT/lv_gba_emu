@@ -71,7 +71,7 @@ static void parse_commandline(int argc, char* const* argv, gba_emu_param_t* para
 {
     int ch;
 
-    memset(param, 0, sizeof(gba_emu_param_t));
+    lv_memzero(param, sizeof(gba_emu_param_t));
     param->mode = LV_VER_RES < 400 ? LV_GBA_VIEW_MODE_SIMPLE : LV_GBA_VIEW_MODE_VIRTUAL_KEYPAD;
     param->volume = 100;
     param->dir_path = ".";
@@ -159,7 +159,7 @@ static void on_rom_selected(const char* path, void* user_data)
 
 static void intro_timer_cb(lv_timer_t* t)
 {
-    gba_emu_param_t* param = t->user_data;
+    gba_emu_param_t* param = lv_timer_get_user_data(t);
     lv_obj_clean(lv_scr_act());
 
     if (param->file_path) {

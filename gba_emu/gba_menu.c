@@ -32,7 +32,7 @@ static menu_ctx_t g_menu_ctx;
 
 static int is_gba_file(const char* filename)
 {
-    return strcmp(lv_fs_get_ext(filename), "gba") == 0;
+    return lv_strcmp(lv_fs_get_ext(filename), "gba") == 0;
 }
 
 static void event_handler(lv_event_t* e)
@@ -77,12 +77,13 @@ void gba_menu_create(lv_obj_t* parent, const char* dir_path, gba_menu_select_cb_
         lv_snprintf(fs_path, sizeof(fs_path), "%s", dir_path);
     }
 
-    strncpy(g_menu_ctx.base_path, fs_path, sizeof(g_menu_ctx.base_path) - 1);
+    lv_strlcpy(g_menu_ctx.base_path, fs_path, sizeof(g_menu_ctx.base_path));
     g_menu_ctx.cb = cb;
     g_menu_ctx.user_data = user_data;
 
     lv_obj_t* list = lv_list_create(parent);
-    lv_obj_set_style_text_font(list, &lv_font_simsun_16_cjk, 0);
+    lv_obj_set_style_clip_corner(list, false, 0);
+    lv_obj_set_style_text_font(list, &lv_font_source_han_sans_sc_16_cjk, 0);
     lv_obj_set_size(list, LV_PCT(100), LV_PCT(100));
     lv_obj_center(list);
 
@@ -96,7 +97,7 @@ void gba_menu_create(lv_obj_t* parent, const char* dir_path, gba_menu_select_cb_
     if (res == LV_FS_RES_OK) {
         char fn[256];
         while (1) {
-            res = lv_fs_dir_read(&dir, fn);
+            res = lv_fs_dir_read(&dir, fn, sizeof(fn));
             if (res != LV_FS_RES_OK || fn[0] == '\0')
                 break;
 

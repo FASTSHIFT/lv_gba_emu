@@ -33,7 +33,7 @@ static void gba_context_init(gba_context_t* ctx)
 
 static void gba_emu_timer_cb(lv_timer_t* timer)
 {
-    gba_context_t* gba_ctx = timer->user_data;
+    gba_context_t* gba_ctx = lv_timer_get_user_data(timer);
     gba_retro_run(gba_ctx);
 }
 
@@ -98,9 +98,7 @@ lv_obj_t* lv_gba_emu_create(lv_obj_t* par, const char* rom_file_path, lv_gba_vie
 
     gba_retro_init(gba_ctx);
 
-    if (!gba_view_init(gba_ctx, par, mode)) {
-        goto failed;
-    }
+    gba_view_init(gba_ctx, par, mode);
 
     if (!gba_retro_load_game(gba_ctx, real_path)) {
         LV_LOG_ERROR("load ROM: %s failed", real_path);
