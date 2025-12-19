@@ -50,6 +50,7 @@ typedef struct
     int volume;
     bool skip_intro;
     bool enable_profiler;
+    bool enable_sysmon;
 } gba_emu_param_t;
 
 static void show_usage(const char* progname, int exitcode)
@@ -65,6 +66,7 @@ static void show_usage(const char* progname, int exitcode)
     printf("  -v <decimal-value> set volume: 0 ~ 100.\n");
     printf("  -s skip intro animation.\n");
     printf("  -p enable profiler.\n");
+    printf("  -n enable system monitor.\n");
     printf("  -h help.\n");
 
     exit(exitcode);
@@ -80,7 +82,7 @@ static void parse_commandline(int argc, char* const* argv, gba_emu_param_t* para
     param->dir_path = ".";
     param->skip_intro = false;
 
-    while ((ch = getopt(argc, argv, "f:d:m:v:sph")) != -1) {
+    while ((ch = getopt(argc, argv, "f:d:m:v:spnh")) != -1) {
         switch (ch) {
         case 'f':
             param->file_path = optarg;
@@ -104,6 +106,10 @@ static void parse_commandline(int argc, char* const* argv, gba_emu_param_t* para
 
         case 'p':
             param->enable_profiler = true;
+            break;
+
+        case 'n':
+            param->enable_sysmon = true;
             break;
 
         case '?':
@@ -202,7 +208,29 @@ static lv_obj_t* create_intro_label(const char* text, uint32_t delay, uint32_t d
 static void start_intro(gba_emu_param_t* param)
 {
 #if LV_USE_PROFILER
+    LV_LOG_USER("Enable profiler: %d", param->enable_profiler)
     lv_profiler_builtin_set_enable(param->enable_profiler);
+#endif
+
+#if LV_USE_SYSMON
+    LV_LOG_USER("Enable sysmon: %d", param->enable_sysmon);
+    if (param->enable_sysmon) {
+#if LV_USE_PERF_MONITOR
+        lv_sysmon_show_performance(NULL);
+#endif
+
+#if LV_USE_MEM_MONITOR
+        lv_sysmon_show_memory(NULL);
+#endif
+    } else {
+#if LV_USE_PERF_MONITOR
+        lv_sysmon_hide_performance(NULL);
+#endif
+
+#if LV_USE_MEM_MONITOR
+        lv_sysmon_hide_memory(NULL);
+#endif
+    }
 #endif
 
     if (param->skip_intro) {
